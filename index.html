@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Музей — Экспонаты</title>
+
+  <!-- Google Fonts: Cormorant Garamond + Jost -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet" />
+
+  <!-- Data file -->
+  <script src="data.js"></script>
+
+  <!-- Model Viewer -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:        #c9a84c;
+      --gold-light:  #e8c97a;
+      --gold-dim:    rgba(201,168,76,.18);
+      --bg:          #0e0c09;
+      --bg2:         #15120d;
+      --bg3:         #1d1810;
+      --text:        #ede8df;
+      --text-muted:  #8a8070;
+      --border:      rgba(201,168,76,.22);
+      --radius:      4px;
+      --transition:  .35s cubic-bezier(.4,0,.2,1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Jost', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      overflow-x: hidden;
+    }
+
+    /* ── Grain overlay ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0; z-index: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E");
+      opacity: .45;
+    }
+
+    /* ── Utility ── */
+    .hidden { display: none !important; }
+
+    /* ══════════════════════════════════════════
+       HEADER
+    ══════════════════════════════════════════ */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(14,12,9,.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
+      padding: 0 clamp(1.5rem, 5vw, 4rem);
+      display: flex; align-items: center; gap: 1.25rem;
+      height: 64px;
+    }
+
+    .header-back-btn {
+      display: flex; align-items: center; gap: .55rem;
+      background: none; border: 1px solid var(--border);
+      color: var(--gold); font-family: 'Jost', sans-serif;
+      font-size: .72rem; font-weight: 400; letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .45rem .9rem; border-radius: var(--radius);
+      cursor: pointer; transition: var(--transition);
+    }
+    .header-back-btn:hover {
+      background: var(--gold-dim); border-color: var(--gold);
+    }
+    .header-back-btn svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    .header-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1rem, 2.5vw, 1.25rem);
+      font-weight: 300; letter-spacing: .08em;
+      color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    .logo-mark {
+      margin-left: auto; flex-shrink: 0;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: .8rem; font-weight: 600; letter-spacing: .22em;
+      color: var(--gold); text-transform: uppercase;
+    }
+
+    /* ══════════════════════════════════════════
+       HOME PAGE
+    ══════════════════════════════════════════ */
+    #page-home {
+      position: relative; z-index: 1;
+      padding: clamp(2rem, 6vw, 5rem) clamp(1.5rem, 5vw, 4rem);
+    }
+
+    .home-hero {
+      text-align: center;
+      padding-bottom: clamp(2rem, 5vw, 4rem);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: clamp(2rem, 5vw, 4rem);
+    }
+
+    .home-hero__eyebrow {
+      font-size: .7rem; font-weight: 400; letter-spacing: .25em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1rem;
+    }
+
+    .home-hero__title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2.8rem, 8vw, 6.5rem);
+      font-weight: 300; line-height: 1.05;
+      color: var(--text);
+      margin-bottom: 1.25rem;
+    }
+
+    .home-hero__title em {
+      font-style: italic; color: var(--gold-light);
+    }
+
+    .home-hero__subtitle {
+      font-size: clamp(.85rem, 2vw, 1rem);
+      font-weight: 200; color: var(--text-muted);
+      max-width: 480px; margin: 0 auto;
+      line-height: 1.7;
+    }
+
+    /* Grid */
+    .exhibits-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+      gap: clamp(1rem, 3vw, 1.75rem);
+    }
+
+    /* Card */
+    .exhibit-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: var(--transition);
+      display: flex; flex-direction: column;
+      position: relative;
+    }
+    .exhibit-card::after {
+      content: '';
+      position: absolute; inset: 0;
+      box-shadow: inset 0 0 0 1px transparent;
+      border-radius: var(--radius);
+      transition: var(--transition);
+      pointer-events: none;
+    }
+    .exhibit-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--gold);
+      box-shadow: 0 16px 48px rgba(0,0,0,.55), 0 0 0 1px var(--gold);
+    }
+    .exhibit-card:hover .card-img img {
+      transform: scale(1.06);
+    }
+    .exhibit-card:hover .card-arrow {
+      opacity: 1; transform: translateX(0);
+    }
+
+    .card-img {
+      aspect-ratio: 4/3;
+      overflow: hidden;
+      background: var(--bg3);
+      position: relative;
+    }
+    .card-img img {
+      width: 100%; height: 100%; object-fit: cover;
+      transition: transform .55s cubic-bezier(.4,0,.2,1);
+      display: block;
+    }
+    .card-img-placeholder {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); font-size: 2rem;
+    }
+
+    .card-num {
+      position: absolute; top: .75rem; left: .75rem;
+      font-size: .62rem; font-weight: 500; letter-spacing: .18em;
+      color: var(--gold); background: rgba(14,12,9,.8);
+      padding: .25rem .55rem; border-radius: 2px;
+      backdrop-filter: blur(6px);
+      text-transform: uppercase;
+    }
+
+    .card-body {
+      padding: 1.1rem 1.25rem 1.25rem;
+      flex: 1; display: flex; flex-direction: column; gap: .55rem;
+    }
+
+    .card-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.1rem, 2.5vw, 1.35rem);
+      font-weight: 400; line-height: 1.25;
+      color: var(--text);
+    }
+
+    .card-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: auto; padding-top: .55rem;
+      border-top: 1px solid rgba(201,168,76,.1);
+    }
+
+    .card-tag {
+      font-size: .65rem; font-weight: 400; letter-spacing: .15em;
+      color: var(--gold); text-transform: uppercase;
+    }
+
+    .card-arrow {
+      opacity: 0; transform: translateX(-6px);
+      transition: var(--transition);
+      color: var(--gold);
+      display: flex; align-items: center;
+    }
+    .card-arrow svg { width: 16px; height: 16px; }
+
+    /* ══════════════════════════════════════════
+       EXHIBIT PAGE
+    ══════════════════════════════════════════ */
+    #page-exhibit {
+      position: relative; z-index: 1;
+      padding: clamp(1.5rem, 4vw, 3rem) clamp(1.5rem, 5vw, 4rem);
+      max-width: 1060px; margin: 0 auto;
+    }
+
+    .exhibit-layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+
+    @media (min-width: 768px) {
+      .exhibit-layout {
+        grid-template-columns: 1fr 340px;
+        gap: clamp(1.5rem, 4vw, 3rem);
+        align-items: start;
+      }
+    }
+
+    /* 3D Viewer */
+    .viewer-wrap {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      position: relative;
+    }
+
+    model-viewer {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      background: transparent;
+      --poster-color: transparent;
+    }
+
+    @media (min-width: 768px) {
+      model-viewer { aspect-ratio: 4/3; }
+    }
+
+    .viewer-label {
+      position: absolute; bottom: .75rem; left: .75rem;
+      font-size: .62rem; font-weight: 400; letter-spacing: .18em;
+      color: var(--gold); text-transform: uppercase;
+      background: rgba(14,12,9,.75); backdrop-filter: blur(6px);
+      padding: .25rem .6rem; border-radius: 2px;
+      pointer-events: none;
+    }
+
+    /* Sidebar */
+    .exhibit-sidebar {
+      display: flex; flex-direction: column; gap: 1.25rem;
+    }
+
+    .exhibit-meta {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+    }
+
+    .exhibit-eyebrow {
+      font-size: .65rem; font-weight: 400; letter-spacing: .22em;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: .6rem;
+    }
+
+    .exhibit-name {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      font-weight: 300; line-height: 1.12;
+      color: var(--text); margin-bottom: 1rem;
+    }
+
+    .exhibit-desc {
+      font-size: clamp(.88rem, 2vw, .95rem);
+      font-weight: 200; color: var(--text-muted);
+      line-height: 1.8;
+    }
+
+    /* Audio player */
+    .audio-block {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.1rem;
+    }
+
+    .audio-block__label {
+      font-size: .62rem; font-weight: 500; letter-spacing: .2em;
+      color: var(--gold); text-transform: uppercase;
+      margin-bottom: .65rem; display: flex; align-items: center; gap: .45rem;
+    }
+    .audio-block__label svg { width: 13px; height: 13px; }
+
+    audio {
+      width: 100%;
+      height: 36px;
+      border-radius: var(--radius);
+      accent-color: var(--gold);
+    }
+    audio::-webkit-media-controls-panel {
+      background: var(--bg3);
+    }
+
+    /* AR Button */
+    .btn-ar {
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: .65rem;
+      background: linear-gradient(135deg, rgba(201,168,76,.12) 0%, rgba(201,168,76,.06) 100%);
+      border: 1px solid var(--gold);
+      color: var(--gold);
+      font-family: 'Jost', sans-serif;
+      font-size: .78rem; font-weight: 400; letter-spacing: .18em;
+      text-transform: uppercase;
+      padding: 1rem 1.5rem;
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: var(--transition);
+      position: relative; overflow: hidden;
+    }
+    .btn-ar::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(201,168,76,.22), transparent);
+      opacity: 0; transition: var(--transition);
+    }
+    .btn-ar:hover::before { opacity: 1; }
+    .btn-ar:hover { box-shadow: 0 0 28px rgba(201,168,76,.25); }
+    .btn-ar:active { transform: scale(.98); }
+    .btn-ar svg { width: 18px; height: 18px; flex-shrink: 0; }
+
+    .btn-ar__badge {
+      font-size: .55rem; letter-spacing: .14em;
+      background: rgba(201,168,76,.18);
+      border: 1px solid rgba(201,168,76,.3);
+      padding: .15rem .45rem; border-radius: 20px;
+      margin-left: auto;
+    }
+
+    /* ── Divider ornament ── */
+    .ornament {
+      text-align: center; color: var(--gold); opacity: .45;
+      font-size: .9rem; letter-spacing: .3em;
+      user-select: none;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .anim { opacity: 0; }
+    .anim.visible {
+      animation: fadeUp .55s cubic-bezier(.4,0,.2,1) forwards;
+    }
+
+    .exhibit-card:nth-child(1) { animation-delay: .05s }
+    .exhibit-card:nth-child(2) { animation-delay: .10s }
+    .exhibit-card:nth-child(3) { animation-delay: .15s }
+    .exhibit-card:nth-child(4) { animation-delay: .20s }
+    .exhibit-card:nth-child(5) { animation-delay: .25s }
+    .exhibit-card:nth-child(6) { animation-delay: .30s }
+    .exhibit-card:nth-child(7) { animation-delay: .35s }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
+  </style>
+</head>
+<body>
+
+  <!-- ══ HEADER ══ -->
+  <header>
+    <button class="header-back-btn hidden" id="back-btn" aria-label="Назад к списку">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M19 12H5M12 5l-7 7 7 7"/>
+      </svg>
+      Назад
+    </button>
+    <span class="header-title" id="header-title">Коллекция экспонатов</span>
+    <span class="logo-mark">Музей</span>
+  </header>
+
+  <!-- ══ HOME PAGE ══ -->
+  <main id="page-home">
+    <section class="home-hero">
+      <p class="home-hero__eyebrow">Постоянная экспозиция</p>
+      <h1 class="home-hero__title">Наша<br><em>коллекция</em></h1>
+      <p class="home-hero__subtitle">Исследуйте уникальные предметы в интерактивном формате — с 3D-просмотром и аудиогидом</p>
+    </section>
+
+    <div class="exhibits-grid" id="exhibits-grid"></div>
+  </main>
+
+  <!-- ══ EXHIBIT PAGE ══ -->
+  <section id="page-exhibit" class="hidden">
+    <div class="exhibit-layout">
+
+      <!-- Left: 3D viewer -->
+      <div class="viewer-wrap">
+        <model-viewer
+          id="model-viewer"
+          auto-rotate
+          camera-controls
+          shadow-intensity="0.8"
+          environment-image="neutral"
+          exposure="0.9"
+          alt="3D-модель экспоната"
+        ></model-viewer>
+        <span class="viewer-label">3D · Управление жестами</span>
+      </div>
+
+      <!-- Right: Info -->
+      <aside class="exhibit-sidebar">
+
+        <div class="exhibit-meta">
+          <p class="exhibit-eyebrow" id="exhibit-eyebrow">Экспонат</p>
+          <h2 class="exhibit-name" id="exhibit-name"></h2>
+          <p class="exhibit-desc" id="exhibit-desc"></p>
+        </div>
+
+        <div class="ornament">✦ &nbsp; ✦ &nbsp; ✦</div>
+
+        <!-- Audio -->
+        <div class="audio-block">
+          <div class="audio-block__label">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+            </svg>
+            Аудиогид
+          </div>
+          <audio id="audio-player" controls preload="none">
+            <source id="audio-source" src="" type="audio/mpeg" />
+            Ваш браузер не поддерживает аудио.
+          </audio>
+        </div>
+
+        <!-- AR Button -->
+        <button class="btn-ar" onclick="alert('AR-режим будет доступен в следующей версии приложения.')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+            <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
+            <line x1="12" y1="22.08" x2="12" y2="12"/>
+          </svg>
+          Запустить AR
+          <span class="btn-ar__badge">Скоро</span>
+        </button>
+
+      </aside>
+    </div>
+  </section>
+
+  <script>
+    // ── State ──────────────────────────────────────
+    let currentExhibit = null;
+
+    // ── Elements ───────────────────────────────────
+    const pageHome    = document.getElementById('page-home');
+    const pageExhibit = document.getElementById('page-exhibit');
+    const backBtn     = document.getElementById('back-btn');
+    const headerTitle = document.getElementById('header-title');
+    const grid        = document.getElementById('exhibits-grid');
+
+    const modelViewer  = document.getElementById('model-viewer');
+    const exhibitName  = document.getElementById('exhibit-name');
+    const exhibitDesc  = document.getElementById('exhibit-desc');
+    const exhibitEye   = document.getElementById('exhibit-eyebrow');
+    const audioPlayer  = document.getElementById('audio-player');
+    const audioSource  = document.getElementById('audio-source');
+
+    // ── Render Grid ────────────────────────────────
+    function renderGrid() {
+      grid.innerHTML = '';
+      (exhibitsData || []).forEach((item, idx) => {
+        const card = document.createElement('article');
+        card.className = 'exhibit-card anim';
+        card.setAttribute('role', 'button');
+        card.setAttribute('tabindex', '0');
+        card.setAttribute('aria-label', item.name);
+
+        const imgHtml = item.imageUrl
+          ? `<img src="${item.imageUrl}" alt="${item.name}" loading="lazy" />`
+          : `<div class="card-img-placeholder">◈</div>`;
+
+        card.innerHTML = `
+          <div class="card-img">
+            ${imgHtml}
+            <span class="card-num">№ ${String(idx + 1).padStart(2, '0')}</span>
+          </div>
+          <div class="card-body">
+            <h3 class="card-name">${item.name}</h3>
+            <div class="card-footer">
+              <span class="card-tag">Просмотр 3D</span>
+              <span class="card-arrow">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => openExhibit(item, idx));
+        card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') openExhibit(item, idx); });
+
+        grid.appendChild(card);
+
+        // Staggered animation
+        requestAnimationFrame(() => {
+          setTimeout(() => card.classList.add('visible'), idx * 60);
+        });
+      });
+    }
+
+    // ── Open Exhibit ───────────────────────────────
+    function openExhibit(item, idx) {
+      currentExhibit = item;
+
+      // Populate
+      exhibitEye.textContent   = `Экспонат № ${String(idx + 1).padStart(2, '0')}`;
+      exhibitName.textContent  = item.name;
+      exhibitDesc.textContent  = item.description || 'Описание отсутствует.';
+      modelViewer.src          = item.modelUrl || '';
+      modelViewer.alt          = item.name;
+
+      // Audio
+      audioSource.src = item.audioUrl || '';
+      audioPlayer.load();
+
+      // Header
+      headerTitle.textContent = item.name;
+
+      // Switch pages
+      pageHome.classList.add('hidden');
+      pageExhibit.classList.remove('hidden');
+      backBtn.classList.remove('hidden');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ── Go Back ────────────────────────────────────
+    function goHome() {
+      audioPlayer.pause();
+      currentExhibit = null;
+
+      headerTitle.textContent = 'Коллекция экспонатов';
+
+      pageExhibit.classList.add('hidden');
+      pageHome.classList.remove('hidden');
+      backBtn.classList.add('hidden');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    backBtn.addEventListener('click', goHome);
+
+    // ── Handle browser back ────────────────────────
+    window.addEventListener('popstate', goHome);
+
+    // ── Init ───────────────────────────────────────
+    renderGrid();
+  </script>
+</body>
+</html>
