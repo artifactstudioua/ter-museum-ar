@@ -280,18 +280,25 @@
 
       document.getElementById('exhibit-model').setAttribute('src', exhibit.modelUrl || '');
       document.getElementById('ar-target').setAttribute('mindar-image-target', 'targetIndex: ' + targetIndex);
+    }
 
-      // AR positioning from data.js
+    // AR positioning — applied after scene loaded so A-Frame doesn't override
+    function applyARPositioning() {
       const model = document.getElementById('ar-model');
-      model.setAttribute('scale',    exhibit.arScale    || '0.15 0.15 0.15');
-      model.setAttribute('position', exhibit.arPosition || '0 0 0.05');
-      model.setAttribute('rotation', exhibit.arRotation || '0 0 0');
+      const scale    = exhibit.arScale    || '0.15 0.15 0.15';
+      const position = exhibit.arPosition || '0 0 0.05';
+      const rotation = exhibit.arRotation || '0 0 0';
+      const rotateTo = exhibit.arRotateTo || '0 360 0';
+
+      model.setAttribute('scale',    scale);
+      model.setAttribute('position', position);
+      model.setAttribute('rotation', rotation);
       model.setAttribute('animation',
-        'property: rotation;' +
-        'from: '    + (exhibit.arRotation || '0 0 0') + ';' +
-        'to: '      + (exhibit.arRotateTo || '0 360 0') + ';' +
-        'loop: true; dur: 8000; easing: linear'
+        'property: rotation; from: ' + rotation +
+        '; to: ' + rotateTo +
+        '; loop: true; dur: 8000; easing: linear'
       );
+      log('AR positioning applied: scale=' + scale + ' rot=' + rotation + ' to=' + rotateTo);
     }
 
     // ── 3. Scene & AR events ──────────────────────
@@ -302,6 +309,9 @@
     scene.addEventListener('loaded', () => {
       log('a-scene loaded');
       log('mindar-image-system exists: ' + !!(scene.systems && scene.systems['mindar-image-system']));
+
+      // Apply AR positioning now that A-Frame components are fully initialised
+      if (exhibit) applyARPositioning();
 
       const target = document.getElementById('ar-target');
       target.addEventListener('targetFound', () => {
