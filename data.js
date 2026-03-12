@@ -7,10 +7,10 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item1.mp3",
     "imageUrl": "./assets/images/item1.jpg",
     "targetIndex": 0,
-    "arScale":    "0.10 0.10 0.10",
+    "arScale":    "0.09 0.09 0.09",
     "arPosition": "0 0 0.05",
-    "arRotation": "0 0 0",
-    "arRotateTo": "0 0 0"
+    "arRotation": "-90 0 0",
+    "arRotateTo": "-90 360 0"
   },
   {
     "id": "exhibit_2",
@@ -91,6 +91,7 @@ const exhibitsData = [
     "arRotateTo": "0 360 0"
   }
 ];
+
 
 
 
