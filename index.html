@@ -487,7 +487,7 @@
       title.classList.remove('hidden');
 
       document.getElementById('btn-ar').onclick =
-        () => alert('AR-режим буде доступний у наступній версії застосунку.');
+        () => window.location.href = `ar.html?id=${item.id}`;
 
       pageHome.classList.add('hidden');
       pageExhibit.classList.remove('hidden');
