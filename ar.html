@@ -280,6 +280,18 @@
 
       document.getElementById('exhibit-model').setAttribute('src', exhibit.modelUrl || '');
       document.getElementById('ar-target').setAttribute('mindar-image-target', 'targetIndex: ' + targetIndex);
+
+      // AR positioning from data.js
+      const model = document.getElementById('ar-model');
+      model.setAttribute('scale',    exhibit.arScale    || '0.15 0.15 0.15');
+      model.setAttribute('position', exhibit.arPosition || '0 0 0.05');
+      model.setAttribute('rotation', exhibit.arRotation || '0 0 0');
+      model.setAttribute('animation',
+        'property: rotation;' +
+        'from: '    + (exhibit.arRotation || '0 0 0') + ';' +
+        'to: '      + (exhibit.arRotateTo || '0 360 0') + ';' +
+        'loop: true; dur: 8000; easing: linear'
+      );
     }
 
     // ── 3. Scene & AR events ──────────────────────
