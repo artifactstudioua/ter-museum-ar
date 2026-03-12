@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Debug — Налаштування моделі</title>
+
+  <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
+  <script src="data.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:    #b38b24;
+      --bg:      #f8f5f0;
+      --white:   #ffffff;
+      --text:    #1a1410;
+      --text-2:  #5a5248;
+      --text-3:  #9a9088;
+      --border:  #e4ddd3;
+      --green:   #2a9d5c;
+      --radius:  14px;
+      --panel:   320px;
+    }
+
+    html, body { height: 100%; font-family: 'Manrope', sans-serif; background: var(--bg); }
+
+    /* ── Layout ── */
+    .layout {
+      display: flex;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    /* ── 3D Viewport ── */
+    .viewport {
+      flex: 1;
+      position: relative;
+      background: #1a1a2e;
+      overflow: hidden;
+    }
+
+    a-scene {
+      width: 100% !important;
+      height: 100% !important;
+      position: absolute !important;
+      top: 0; left: 0;
+    }
+
+    .viewport-label {
+      position: absolute; top: 12px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.5);
+      color: rgba(255,255,255,.7);
+      font-size: .65rem; font-weight: 600; letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: .3rem .8rem; border-radius: 20px;
+      pointer-events: none; z-index: 10;
+    }
+
+    /* ── Panel ── */
+    .panel {
+      width: var(--panel);
+      flex-shrink: 0;
+      background: var(--white);
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 1rem 1.1rem .75rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .panel-header h1 {
+      font-size: .95rem; font-weight: 700; color: var(--text);
+      margin-bottom: .2rem;
+    }
+    .panel-header p {
+      font-size: .7rem; color: var(--text-3); line-height: 1.4;
+    }
+
+    /* Exhibit selector */
+    .exhibit-select-wrap {
+      padding: .75rem 1.1rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .exhibit-select-wrap label {
+      display: block; font-size: .62rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: .4rem;
+    }
+    select {
+      width: 100%;
+      font-family: 'Manrope', sans-serif;
+      font-size: .82rem; font-weight: 500;
+      color: var(--text);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: .5rem .75rem;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9088' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+    }
+    select:focus { outline: none; border-color: var(--gold); }
+
+    /* Sliders scroll area */
+    .panel-body {
+      flex: 1; overflow-y: auto; padding: .75rem 1.1rem;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+
+    .slider-group {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .7rem .85rem;
+    }
+    .slider-group-title {
+      font-size: .62rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: .6rem;
+    }
+
+    .slider-row {
+      display: grid;
+      grid-template-columns: 16px 1fr 52px;
+      align-items: center;
+      gap: .5rem;
+      margin-bottom: .45rem;
+    }
+    .slider-row:last-child { margin-bottom: 0; }
+
+    .axis-label {
+      font-size: .72rem; font-weight: 700; color: var(--text-2);
+      text-align: center;
+    }
+
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--gold);
+      cursor: pointer;
+      height: 4px;
+    }
+
+    .val-display {
+      font-size: .72rem; font-weight: 600;
+      color: var(--text); text-align: right;
+      font-variant-numeric: tabular-nums;
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: .2rem .35rem;
+      min-width: 48px;
+    }
+
+    /* Output */
+    .panel-footer {
+      padding: .85rem 1.1rem;
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+      display: flex; flex-direction: column; gap: .55rem;
+    }
+
+    .output-label {
+      font-size: .62rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--text-3);
+      margin-bottom: .1rem;
+    }
+
+    .output-box {
+      background: #1a1410;
+      border-radius: 10px;
+      padding: .65rem .85rem;
+      font: 11px/1.7 monospace;
+      color: #d4a93a;
+      white-space: pre;
+      overflow-x: auto;
+      cursor: pointer;
+      transition: background .2s;
+      position: relative;
+    }
+    .output-box:hover { background: #2a2018; }
+    .output-box:hover::after {
+      content: 'Копіювати';
+      position: absolute; top: 6px; right: 8px;
+      font: 600 .6rem 'Manrope', sans-serif;
+      color: var(--gold); letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+
+    .copied-toast {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--green); color: #fff;
+      font-size: .78rem; font-weight: 700;
+      padding: .5rem 1.2rem; border-radius: 30px;
+      box-shadow: 0 4px 16px rgba(42,157,92,.4);
+      opacity: 0; transition: opacity .25s, transform .25s;
+      pointer-events: none; z-index: 9999;
+    }
+    .copied-toast.show {
+      opacity: 1; transform: translateX(-50%) translateY(0);
+    }
+
+    .btn-reset {
+      width: 100%;
+      background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text-2); font-family: 'Manrope', sans-serif;
+      font-size: .75rem; font-weight: 600;
+      padding: .5rem; border-radius: 8px; cursor: pointer;
+      transition: .2s;
+    }
+    .btn-reset:hover { border-color: var(--gold); color: var(--gold); }
+
+    /* Mobile: stack vertically */
+    @media (max-width: 640px) {
+      .layout { flex-direction: column; }
+      .viewport { flex: 0 0 42dvh; }
+      .panel {
+        width: 100%; border-left: none;
+        border-top: 1px solid var(--border);
+        flex: 1;
+      }
+      :root { --panel: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── 3D VIEWPORT ── -->
+  <div class="viewport">
+    <span class="viewport-label">3D перегляд — перетягни для огляду</span>
+    <a-scene
+      embedded
+      renderer="colorManagement: true; physicallyCorrectLights: true"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <a-assets>
+        <a-asset-item id="debug-model" src=""></a-asset-item>
+      </a-assets>
+
+      <a-light type="ambient"     color="#ffffff" intensity="0.7"></a-light>
+      <a-light type="directional" color="#fff8ee" intensity="1.4" position="1 3 2"></a-light>
+      <a-light type="directional" color="#ddeeff" intensity="0.4" position="-2 1 -1"></a-light>
+
+      <!-- Neutral ground grid for reference -->
+      <a-grid color="#cccccc" opacity="0.25" position="0 -0.5 -2"></a-grid>
+
+      <!-- Camera with orbit controls -->
+      <a-entity id="camera-rig" position="0 0 0">
+        <a-camera
+          id="debug-camera"
+          position="0 0.5 2"
+          look-controls="magicWindowTrackingEnabled: false"
+          wasd-controls="enabled: false"
+        ></a-camera>
+      </a-entity>
+
+      <!-- Model wrapper — this is what we position -->
+      <a-entity id="model-wrapper" position="0 0 -2">
+        <a-gltf-model
+          id="debug-model-el"
+          src="#debug-model"
+          scale="0.15 0.15 0.15"
+          position="0 0 0"
+          rotation="0 0 0"
+        ></a-gltf-model>
+      </a-entity>
+    </a-scene>
+  </div>
+
+  <!-- ── CONTROL PANEL ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <h1>AR Debug</h1>
+      <p>Налаштуй модель і скопіюй значення в data.js</p>
+    </div>
+
+    <!-- Exhibit selector -->
+    <div class="exhibit-select-wrap">
+      <label>Експонат</label>
+      <select id="exhibit-select"></select>
+    </div>
+
+    <div class="panel-body">
+
+      <!-- Scale -->
+      <div class="slider-group">
+        <div class="slider-group-title">Scale (розмір)</div>
+        <div class="slider-row">
+          <span class="axis-label">S</span>
+          <input type="range" id="s-uniform" min="0.01" max="1" step="0.01" value="0.15" />
+          <span class="val-display" id="s-uniform-val">0.15</span>
+        </div>
+      </div>
+
+      <!-- Position -->
+      <div class="slider-group">
+        <div class="slider-group-title">Position (зміщення)</div>
+        <div class="slider-row">
+          <span class="axis-label">X</span>
+          <input type="range" id="pos-x" min="-1" max="1" step="0.01" value="0" />
+          <span class="val-display" id="pos-x-val">0</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Y</span>
+          <input type="range" id="pos-y" min="-1" max="1" step="0.01" value="0" />
+          <span class="val-display" id="pos-y-val">0</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Z</span>
+          <input type="range" id="pos-z" min="-1" max="1" step="0.01" value="0.05" />
+          <span class="val-display" id="pos-z-val">0.05</span>
+        </div>
+      </div>
+
+      <!-- Rotation -->
+      <div class="slider-group">
+        <div class="slider-group-title">Rotation (початковий кут)</div>
+        <div class="slider-row">
+          <span class="axis-label">X</span>
+          <input type="range" id="rot-x" min="-180" max="180" step="1" value="0" />
+          <span class="val-display" id="rot-x-val">0°</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Y</span>
+          <input type="range" id="rot-y" min="-180" max="180" step="1" value="0" />
+          <span class="val-display" id="rot-y-val">0°</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Z</span>
+          <input type="range" id="rot-z" min="-180" max="180" step="1" value="0" />
+          <span class="val-display" id="rot-z-val">0°</span>
+        </div>
+      </div>
+
+      <!-- Rotate axis -->
+      <div class="slider-group">
+        <div class="slider-group-title">Вісь обертання (arRotateTo)</div>
+        <p style="font-size:.68rem;color:var(--text-3);margin-bottom:.5rem;line-height:1.4">
+          Обери яка вісь буде крутитись до 360°
+        </p>
+        <div style="display:flex;gap:.5rem">
+          <button class="axis-btn" data-axis="x">X</button>
+          <button class="axis-btn" data-axis="y">Y</button>
+          <button class="axis-btn" data-axis="z">Z</button>
+          <button class="axis-btn" data-axis="none">Без обертання</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Output -->
+    <div class="panel-footer">
+      <div class="output-label">Скопіюй в data.js</div>
+      <div class="output-box" id="output-box" onclick="copyOutput()"></div>
+      <button class="btn-reset" onclick="resetAll()">↺ Скинути до дефолту</button>
+    </div>
+  </div>
+</div>
+
+<div class="copied-toast" id="copied-toast">✓ Скопійовано!</div>
+
+<style>
+  .axis-btn {
+    flex: 1;
+    background: var(--bg); border: 1.5px solid var(--border);
+    color: var(--text-2); font-family: 'Manrope', sans-serif;
+    font-size: .72rem; font-weight: 700;
+    padding: .4rem .3rem; border-radius: 8px; cursor: pointer;
+    transition: .18s;
+  }
+  .axis-btn:hover { border-color: var(--gold); color: var(--gold); }
+  .axis-btn.active {
+    background: var(--gold); border-color: var(--gold);
+    color: #fff;
+  }
+</style>
+
+<script>
+  // ── State ──────────────────────────────────────
+  let currentExhibit = null;
+  let rotateAxis = 'y'; // default
+
+  // ── Populate exhibit selector ──────────────────
+  const sel = document.getElementById('exhibit-select');
+  (exhibitsData || []).forEach((ex, i) => {
+    const opt = document.createElement('option');
+    opt.value = ex.id;
+    opt.textContent = (i + 1) + '. ' + ex.name;
+    sel.appendChild(opt);
+  });
+
+  // ── Check URL for ?id= ─────────────────────────
+  const urlId = new URLSearchParams(window.location.search).get('id');
+  if (urlId) sel.value = urlId;
+
+  // ── Load exhibit ───────────────────────────────
+  function loadExhibit(id) {
+    const ex = (exhibitsData || []).find(e => e.id === id);
+    if (!ex) return;
+    currentExhibit = ex;
+
+    // Load model
+    const asset = document.getElementById('debug-model');
+    const modelEl = document.getElementById('debug-model-el');
+
+    asset.setAttribute('src', ex.modelUrl || '');
+    modelEl.setAttribute('src', '#debug-model');
+
+    // Load existing AR values if present
+    if (ex.arScale) {
+      const s = parseFloat(ex.arScale.split(' ')[0]);
+      document.getElementById('s-uniform').value = s;
+      document.getElementById('s-uniform-val').textContent = s;
+    }
+    if (ex.arPosition) {
+      const [px, py, pz] = ex.arPosition.split(' ').map(Number);
+      document.getElementById('pos-x').value = px; document.getElementById('pos-x-val').textContent = px;
+      document.getElementById('pos-y').value = py; document.getElementById('pos-y-val').textContent = py;
+      document.getElementById('pos-z').value = pz; document.getElementById('pos-z-val').textContent = pz;
+    }
+    if (ex.arRotation) {
+      const [rx, ry, rz] = ex.arRotation.split(' ').map(Number);
+      document.getElementById('rot-x').value = rx; document.getElementById('rot-x-val').textContent = rx + '°';
+      document.getElementById('rot-y').value = ry; document.getElementById('rot-y-val').textContent = ry + '°';
+      document.getElementById('rot-z').value = rz; document.getElementById('rot-z-val').textContent = rz + '°';
+    }
+    if (ex.arRotateTo) {
+      const parts = ex.arRotateTo.split(' ').map(Number);
+      if (parts[0] === 360) rotateAxis = 'x';
+      else if (parts[1] === 360) rotateAxis = 'y';
+      else if (parts[2] === 360) rotateAxis = 'z';
+      else rotateAxis = 'none';
+      updateAxisBtns();
+    }
+
+    applyToScene();
+    updateOutput();
+  }
+
+  sel.addEventListener('change', () => loadExhibit(sel.value));
+
+  // ── Apply values to A-Frame model ─────────────
+  function applyToScene() {
+    const s  = parseFloat(document.getElementById('s-uniform').value);
+    const px = parseFloat(document.getElementById('pos-x').value);
+    const py = parseFloat(document.getElementById('pos-y').value);
+    const pz = parseFloat(document.getElementById('pos-z').value);
+    const rx = parseFloat(document.getElementById('rot-x').value);
+    const ry = parseFloat(document.getElementById('rot-y').value);
+    const rz = parseFloat(document.getElementById('rot-z').value);
+
+    const modelEl = document.getElementById('debug-model-el');
+    modelEl.setAttribute('scale',    `${s} ${s} ${s}`);
+    modelEl.setAttribute('position', `${px} ${py} ${pz}`);
+    modelEl.setAttribute('rotation', `${rx} ${ry} ${rz}`);
+
+    // Live rotation animation preview
+    const rotateTo = getRotateTo(rx, ry, rz);
+    modelEl.setAttribute('animation',
+      'property: rotation; from: ' + rx + ' ' + ry + ' ' + rz +
+      '; to: ' + rotateTo +
+      '; loop: true; dur: 5000; easing: linear'
+    );
+
+    updateOutput();
+  }
+
+  // ── Rotate axis buttons ────────────────────────
+  function getRotateTo(rx, ry, rz) {
+    if (rotateAxis === 'x') return `${rx + 360} ${ry} ${rz}`;
+    if (rotateAxis === 'y') return `${rx} ${ry + 360} ${rz}`;
+    if (rotateAxis === 'z') return `${rx} ${ry} ${rz + 360}`;
+    return `${rx} ${ry} ${rz}`; // no rotation
+  }
+
+  function updateAxisBtns() {
+    document.querySelectorAll('.axis-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.axis === rotateAxis);
+    });
+  }
+
+  document.querySelectorAll('.axis-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      rotateAxis = btn.dataset.axis;
+      updateAxisBtns();
+      applyToScene();
+    });
+  });
+
+  // Mark Y as default active
+  updateAxisBtns();
+
+  // ── Sliders ────────────────────────────────────
+  function bindSlider(id, displayId, suffix) {
+    const input = document.getElementById(id);
+    const disp  = document.getElementById(displayId);
+    input.addEventListener('input', () => {
+      disp.textContent = input.value + (suffix || '');
+      applyToScene();
+    });
+  }
+
+  bindSlider('s-uniform', 's-uniform-val', '');
+  bindSlider('pos-x', 'pos-x-val', '');
+  bindSlider('pos-y', 'pos-y-val', '');
+  bindSlider('pos-z', 'pos-z-val', '');
+  bindSlider('rot-x', 'rot-x-val', '°');
+  bindSlider('rot-y', 'rot-y-val', '°');
+  bindSlider('rot-z', 'rot-z-val', '°');
+
+  // ── Output ─────────────────────────────────────
+  function updateOutput() {
+    const s  = parseFloat(document.getElementById('s-uniform').value);
+    const px = parseFloat(document.getElementById('pos-x').value);
+    const py = parseFloat(document.getElementById('pos-y').value);
+    const pz = parseFloat(document.getElementById('pos-z').value);
+    const rx = parseInt(document.getElementById('rot-x').value);
+    const ry = parseInt(document.getElementById('rot-y').value);
+    const rz = parseInt(document.getElementById('rot-z').value);
+    const rotateTo = getRotateTo(rx, ry, rz);
+
+    const out = `"arScale":    "${s} ${s} ${s}",\n"arPosition": "${px} ${py} ${pz}",\n"arRotation": "${rx} ${ry} ${rz}",\n"arRotateTo": "${rotateTo}"`;
+    document.getElementById('output-box').textContent = out;
+  }
+
+  function copyOutput() {
+    const text = document.getElementById('output-box').textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.getElementById('copied-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    });
+  }
+
+  function resetAll() {
+    document.getElementById('s-uniform').value = 0.15;
+    document.getElementById('pos-x').value = 0;
+    document.getElementById('pos-y').value = 0;
+    document.getElementById('pos-z').value = 0.05;
+    document.getElementById('rot-x').value = 0;
+    document.getElementById('rot-y').value = 0;
+    document.getElementById('rot-z').value = 0;
+    document.getElementById('s-uniform-val').textContent = '0.15';
+    document.getElementById('pos-x-val').textContent = '0';
+    document.getElementById('pos-y-val').textContent = '0';
+    document.getElementById('pos-z-val').textContent = '0.05';
+    document.getElementById('rot-x-val').textContent = '0°';
+    document.getElementById('rot-y-val').textContent = '0°';
+    document.getElementById('rot-z-val').textContent = '0°';
+    rotateAxis = 'y';
+    updateAxisBtns();
+    applyToScene();
+  }
+
+  // ── Init ───────────────────────────────────────
+  if (exhibitsData && exhibitsData.length > 0) {
+    loadExhibit(sel.value || exhibitsData[0].id);
+  }
+</script>
+</body>
+</html>
