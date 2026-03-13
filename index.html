@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Музей — Експонати</title>
+  <title>Колекція AR-листівок</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -289,6 +289,36 @@
     }
     .btn-ar:active { transform: translateY(0); }
     .btn-ar svg { width: 20px; height: 20px; flex-shrink: 0; }
+    /* Mobile: show btn-ar, hide warning. Desktop: reverse */
+    @media (hover: hover) and (pointer: fine) {
+      /* Desktop */
+      #btn-ar { display: none !important; }
+      #ar-desktop-warning { display: flex !important; }
+    }
+    @media (hover: none) and (pointer: coarse) {
+      /* Mobile/touch */
+      #btn-ar { display: flex !important; }
+      #ar-desktop-warning { display: none !important; }
+    }
+
+    /* Desktop AR warning */
+    .ar-desktop-warning {
+      display: none;
+      width: 100%;
+      display: flex; align-items: center; justify-content: center; gap: .6rem;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      color: var(--text-3);
+      font-family: 'Manrope', sans-serif;
+      font-size: .82rem; font-weight: 500;
+      padding: .9rem 1.5rem;
+      border-radius: var(--radius);
+      margin-top: .85rem;
+      cursor: default;
+      user-select: none;
+    }
+    .ar-desktop-warning svg { width: 16px; height: 16px; flex-shrink: 0; color: var(--text-3); }
+
     .btn-ar-soon {
       margin-left: auto;
       background: rgba(255,255,255,.22);
@@ -338,10 +368,10 @@
   <!-- HEADER -->
   <header>
     <div class="header-logo" id="logo-btn" role="button" tabindex="0" aria-label="На головну">
-      <div class="header-logo-icon">🪆</div>
+      <div class="header-logo-icon">🏛️</div>
       <div>
-        <span class="header-logo-name">Музей</span>
-        <span class="header-logo-sub">Колекція</span>
+        <span class="header-logo-name">Теребовлянський Музей-Майстерня</span>
+        <span class="header-logo-sub">Колекція AR-листівок</span>
       </div>
     </div>
     <div class="header-spacer"></div>
@@ -377,7 +407,7 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
             </svg>
-            Перетягніть для огляду
+            Обертайте
           </span>
         </div>
 
@@ -388,8 +418,15 @@
             <line x1="12" y1="22.08" x2="12" y2="12"/>
           </svg>
           Дивитись в AR
-          <span class="btn-ar-soon">Скоро</span>
         </button>
+        <div class="ar-desktop-warning" id="ar-desktop-warning">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          AR доступний лише на мобільних пристроях
+        </div>
       </div>
 
       <!-- RIGHT -->
