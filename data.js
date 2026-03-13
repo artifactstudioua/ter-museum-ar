@@ -35,7 +35,7 @@ const exhibitsData = [
     "targetIndex": 2,
     "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
-    "arRotation": "0 0 0",
+    "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
   },
   {
@@ -48,7 +48,7 @@ const exhibitsData = [
     "targetIndex": 3,
     "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
-    "arRotation": "0 0 0",
+    "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
   },
   {
@@ -61,7 +61,7 @@ const exhibitsData = [
     "targetIndex": 4,
     "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
-    "arRotation": "0 0 0",
+    "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
   },
   {
@@ -74,7 +74,7 @@ const exhibitsData = [
     "targetIndex": 5,
     "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
-    "arRotation": "0 0 0",
+    "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
   },
   {
@@ -87,10 +87,11 @@ const exhibitsData = [
     "targetIndex": 6,
     "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
-    "arRotation": "0 0 0",
+    "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
   }
 ];
+
 
 
 
