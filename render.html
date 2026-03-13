@@ -302,7 +302,6 @@
       <model-viewer
         id="main-viewer"
         camera-controls
-        auto-rotate
         shadow-intensity="1"
         exposure="1"
         environment-image="neutral"
@@ -479,15 +478,13 @@
     exhibit = exhibit || currentExhibit;
     if (!exhibit) return;
 
-    // Disable auto-rotate for clean shot
-    viewer.removeAttribute('auto-rotate');
-
     // Wait for model to fully render
     await viewer.updateComplete;
     await new Promise(r => setTimeout(r, 600));
 
     try {
-      const blob = await viewer.toBlob({ idealAspect: false, width: outputW, height: outputH });
+      const blobBg = bgType === 'transparent' ? null : (bgType === 'white' ? '#ffffff' : bgColor);
+      const blob = await viewer.toBlob({ idealAspect: false, width: outputW, height: outputH, ...(blobBg ? { backgroundColor: blobBg } : {}) });
       const url  = URL.createObjectURL(blob);
       const a    = document.createElement('a');
       a.href     = url;
@@ -499,7 +496,6 @@
       showToast('Помилка: ' + e.message);
     }
 
-    viewer.setAttribute('auto-rotate', '');
   }
 
   document.getElementById('btn-save').addEventListener('click', () => {
@@ -515,8 +511,6 @@
 
     btn.disabled = true;
     progress.classList.add('visible');
-    viewer.removeAttribute('auto-rotate');
-
     const all = exhibitsData || [];
     for (let i = 0; i < all.length; i++) {
       const ex = all[i];
@@ -535,7 +529,8 @@
       });
 
       try {
-        const blob = await viewer.toBlob({ idealAspect: false, width: outputW, height: outputH });
+        const blobBg2 = bgType === 'transparent' ? null : (bgType === 'white' ? '#ffffff' : bgColor);
+        const blob = await viewer.toBlob({ idealAspect: false, width: outputW, height: outputH, ...(blobBg2 ? { backgroundColor: blobBg2 } : {}) });
         const url  = URL.createObjectURL(blob);
         const a    = document.createElement('a');
         a.href     = url;
@@ -552,7 +547,6 @@
     fill.style.width = '100%';
     text.textContent = `Готово! ${all.length} файлів збережено`;
     btn.disabled = false;
-    viewer.setAttribute('auto-rotate', '');
     showToast('✓ Всі моделі збережено');
   });
 
