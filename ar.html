@@ -149,7 +149,7 @@
   <!-- A-FRAME SCENE — статична, Mind-AR управляє canvas -->
   <a-scene
     id="ar-scene"
-    mindar-image="imageTargetSrc: ./assets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.001; filterBeta: 0.01; missTolerance: 5; warmupTolerance: 5;"
+    mindar-image="imageTargetSrc: ./assets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 10; warmupTolerance: 10;"
     color-space="sRGB"
     renderer="colorManagement: true; physicallyCorrectLights: true"
     vr-mode-ui="enabled: false"
@@ -301,7 +301,7 @@
       // Wrapper spins around Z axis — this is the vertical axis in Mind-AR marker space
       wrapper.setAttribute('rotation', '0 0 0');
       wrapper.setAttribute('animation',
-        'property: rotation; from: 0 0 0; to: 0 0 360; loop: true; dur: 8000; easing: linear'
+        'property: rotation; from: 0 0 0; to: 0 0 360; loop: true; dur: 16000; easing: linear'
       );
 
       log('AR positioning applied: scale=' + scale + ' rot=' + rotation);
