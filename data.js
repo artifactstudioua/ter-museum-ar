@@ -8,7 +8,7 @@ const exhibitsData = [
     "imageUrl": "./assets/images/item1.jpg",
     "targetIndex": 0,
     "arScale":    "0.07 0.07 0.07",
-    "arPosition": "0 0 0.05",
+    "arPosition": "0 0 0",
     "arRotation": "90 0 0",
     "arRotateTo": "-90 360 0"
   },
@@ -91,6 +91,7 @@ const exhibitsData = [
     "arRotateTo": "0 360 0"
   }
 ];
+
 
 
 
