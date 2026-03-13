@@ -7,7 +7,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item1.mp3",
     "imageUrl": "./assets/images/item1.jpg",
     "targetIndex": 0,
-    "arScale":    "0.1 0.1 0.1",
+    "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
     "arRotation": "90 0 0",
     "arRotateTo": "-90 360 0"
@@ -20,7 +20,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item2.mp3",
     "imageUrl": "./assets/images/item2.jpg",
     "targetIndex": 1,
-    "arScale":    "0.15 0.15 0.15",
+    "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
     "arRotation": "0 0 0",
     "arRotateTo": "0 360 0"
@@ -33,7 +33,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item3.mp3",
     "imageUrl": "./assets/images/item3.jpg",
     "targetIndex": 2,
-    "arScale":    "0.15 0.15 0.15",
+    "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
     "arRotation": "0 0 0",
     "arRotateTo": "0 360 0"
@@ -46,7 +46,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item4.mp3",
     "imageUrl": "./assets/images/item4.jpg",
     "targetIndex": 3,
-    "arScale":    "0.15 0.15 0.15",
+    "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
     "arRotation": "0 0 0",
     "arRotateTo": "0 360 0"
@@ -59,7 +59,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item5.mp3",
     "imageUrl": "./assets/images/item5.jpg",
     "targetIndex": 4,
-    "arScale":    "0.15 0.15 0.15",
+    "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
     "arRotation": "0 0 0",
     "arRotateTo": "0 360 0"
@@ -72,7 +72,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item6.mp3",
     "imageUrl": "./assets/images/item6.jpg",
     "targetIndex": 5,
-    "arScale":    "0.15 0.15 0.15",
+    "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
     "arRotation": "0 0 0",
     "arRotateTo": "0 360 0"
@@ -85,12 +85,13 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item7.mp3",
     "imageUrl": "./assets/images/item7.jpg",
     "targetIndex": 6,
-    "arScale":    "0.15 0.15 0.15",
+    "arScale":    "0.07 0.07 0.07",
     "arPosition": "0 0 0.05",
     "arRotation": "0 0 0",
     "arRotateTo": "0 360 0"
   }
 ];
+
 
 
 
