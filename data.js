@@ -9,8 +9,8 @@ const exhibitsData = [
     "targetIndex": 0,
     "arScale":    "0.1 0.1 0.1",
     "arPosition": "0 0 0.05",
-    "arRotation": "-1 0 0",
-    "arRotateTo": "-1 360 0"
+    "arRotation": "-90 0 0",
+    "arRotateTo": "-90 360 0"
   },
   {
     "id": "exhibit_2",
@@ -91,6 +91,7 @@ const exhibitsData = [
     "arRotateTo": "0 360 0"
   }
 ];
+
 
 
 
