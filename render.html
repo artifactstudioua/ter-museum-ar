@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Render — Превью моделей</title>
+
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js"></script>
+  <script src="data.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold:   #b38b24;
+      --bg:     #f8f5f0;
+      --white:  #ffffff;
+      --text:   #1a1410;
+      --text-2: #5a5248;
+      --text-3: #9a9088;
+      --border: #e4ddd3;
+      --green:  #2a9d5c;
+      --radius: 14px;
+      --panel:  300px;
+    }
+
+    html, body { height: 100%; font-family: 'Manrope', sans-serif; background: var(--bg); }
+
+    .layout { display: flex; height: 100dvh; overflow: hidden; }
+
+    /* ── Left: model list ── */
+    .sidebar {
+      width: 220px; flex-shrink: 0;
+      background: var(--white); border-right: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    .sidebar-header {
+      padding: 1rem; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .sidebar-header h2 { font-size: .85rem; font-weight: 700; color: var(--text); margin-bottom: .15rem; }
+    .sidebar-header p  { font-size: .65rem; color: var(--text-3); }
+
+    .model-list { flex: 1; overflow-y: auto; padding: .5rem; }
+
+    .model-item {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .55rem .7rem; border-radius: 10px;
+      cursor: pointer; transition: .18s;
+      border: 1.5px solid transparent;
+      margin-bottom: .25rem;
+    }
+    .model-item:hover { background: var(--bg); }
+    .model-item.active { background: #fff8ec; border-color: var(--gold); }
+
+    .model-item-num {
+      width: 22px; height: 22px; border-radius: 50%;
+      background: var(--bg); border: 1px solid var(--border);
+      font-size: .6rem; font-weight: 700; color: var(--text-3);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .model-item.active .model-item-num { background: var(--gold); border-color: var(--gold); color: #fff; }
+
+    .model-item-name {
+      font-size: .75rem; font-weight: 600; color: var(--text);
+      line-height: 1.3;
+    }
+
+    .btn-render-all {
+      margin: .5rem; flex-shrink: 0;
+      background: var(--gold); color: #fff;
+      font-family: 'Manrope', sans-serif; font-size: .75rem; font-weight: 700;
+      border: none; border-radius: 10px; padding: .65rem;
+      cursor: pointer; transition: .2s; text-align: center;
+    }
+    .btn-render-all:hover { background: #c9a030; }
+    .btn-render-all:disabled { background: var(--border); color: var(--text-3); cursor: not-allowed; }
+
+    /* ── Center: viewport ── */
+    .viewport {
+      flex: 1; position: relative;
+      display: flex; flex-direction: column;
+      overflow: hidden;
+    }
+
+    .viewport-toolbar {
+      padding: .6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      display: flex; align-items: center; gap: .75rem;
+      flex-shrink: 0; flex-wrap: wrap;
+    }
+
+    .toolbar-label {
+      font-size: .68rem; font-weight: 700; color: var(--text);
+      white-space: nowrap;
+    }
+
+    .exhibit-title-bar {
+      font-size: .82rem; font-weight: 700; color: var(--text);
+      flex: 1;
+    }
+
+    .btn-save {
+      display: flex; align-items: center; gap: .4rem;
+      background: var(--green); color: #fff;
+      font-family: 'Manrope', sans-serif; font-size: .75rem; font-weight: 700;
+      border: none; border-radius: 8px; padding: .45rem .9rem;
+      cursor: pointer; transition: .2s; white-space: nowrap;
+    }
+    .btn-save:hover { background: #238a4e; }
+    .btn-save:disabled { background: var(--border); color: var(--text-3); cursor: not-allowed; }
+    .btn-save svg { width: 14px; height: 14px; }
+
+    .viewer-container {
+      flex: 1; position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* Checkerboard for transparent bg preview */
+    .viewer-container.checker {
+      background-image:
+        linear-gradient(45deg, #ccc 25%, transparent 25%),
+        linear-gradient(-45deg, #ccc 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #ccc 75%),
+        linear-gradient(-45deg, transparent 75%, #ccc 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+
+    model-viewer {
+      width: 100%; height: 100%;
+      display: block;
+      --progress-bar-color: var(--gold);
+    }
+
+    /* Size overlay */
+    .size-badge {
+      position: absolute; bottom: 10px; left: 10px;
+      background: rgba(0,0,0,.5); color: rgba(255,255,255,.8);
+      font: 600 .62rem monospace; padding: .2rem .5rem; border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* ── Right: settings panel ── */
+    .panel {
+      width: var(--panel); flex-shrink: 0;
+      background: var(--white); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+
+    .panel-header {
+      padding: .85rem 1rem .65rem;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .panel-header h2 { font-size: .85rem; font-weight: 700; color: var(--text); }
+
+    .panel-body { flex: 1; overflow-y: auto; padding: .75rem 1rem; display: flex; flex-direction: column; gap: .75rem; }
+
+    .setting-group {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .7rem .85rem;
+    }
+    .setting-title {
+      font-size: .6rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: .6rem;
+    }
+
+    .setting-row {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: .5rem; margin-bottom: .5rem;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+
+    .setting-row label {
+      font-size: .72rem; font-weight: 500; color: var(--text-2);
+      white-space: nowrap;
+    }
+
+    input[type=range] { flex: 1; accent-color: var(--gold); cursor: pointer; }
+    input[type=color] {
+      width: 36px; height: 28px; border: 1.5px solid var(--border);
+      border-radius: 6px; cursor: pointer; padding: 2px;
+      background: var(--white);
+    }
+
+    .val-badge {
+      font-size: .68rem; font-weight: 600; color: var(--text);
+      font-variant-numeric: tabular-nums;
+      min-width: 36px; text-align: right;
+    }
+
+    select.setting-select {
+      width: 100%; font-family: 'Manrope', sans-serif;
+      font-size: .78rem; color: var(--text);
+      background: var(--white); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: .4rem .6rem; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%239a9088' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .6rem center;
+    }
+    select.setting-select:focus { outline: none; border-color: var(--gold); }
+
+    /* Bg type buttons */
+    .bg-type-btns { display: flex; gap: .4rem; margin-bottom: .55rem; }
+    .bg-type-btn {
+      flex: 1; font-family: 'Manrope', sans-serif;
+      font-size: .7rem; font-weight: 600;
+      background: var(--white); border: 1.5px solid var(--border);
+      color: var(--text-2); border-radius: 7px; padding: .35rem;
+      cursor: pointer; transition: .15s;
+    }
+    .bg-type-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .bg-type-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+
+    /* Output size */
+    .size-btns { display: flex; gap: .4rem; flex-wrap: wrap; }
+    .size-btn {
+      font-family: 'Manrope', sans-serif; font-size: .68rem; font-weight: 600;
+      background: var(--white); border: 1.5px solid var(--border);
+      color: var(--text-2); border-radius: 7px; padding: .3rem .55rem;
+      cursor: pointer; transition: .15s;
+    }
+    .size-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .size-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+
+    /* Camera orbit inputs */
+    .orbit-inputs { display: flex; flex-direction: column; gap: .4rem; }
+
+    /* Batch progress */
+    .batch-progress {
+      margin: .5rem 1rem;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: .6rem .8rem;
+      font-size: .72rem; color: var(--text-2);
+      display: none;
+    }
+    .batch-progress.visible { display: block; }
+    .progress-bar-wrap {
+      height: 4px; background: var(--border); border-radius: 2px; margin-top: .4rem;
+    }
+    .progress-bar-fill {
+      height: 100%; background: var(--gold); border-radius: 2px;
+      transition: width .3s; width: 0%;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: #1a1410; color: #fff;
+      font-size: .78rem; font-weight: 600;
+      padding: .5rem 1.2rem; border-radius: 30px;
+      opacity: 0; transition: opacity .25s, transform .25s;
+      pointer-events: none; z-index: 9999; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 900px) {
+      .sidebar { display: none; }
+      .panel { width: 260px; }
+    }
+    @media (max-width: 640px) {
+      .panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="layout">
+
+  <!-- ── MODEL LIST ── -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>Моделі</h2>
+      <p>Обери для рендеру</p>
+    </div>
+    <div class="model-list" id="model-list"></div>
+    <button class="btn-render-all" id="btn-render-all">⬇ Зберегти всі PNG</button>
+  </div>
+
+  <!-- ── VIEWPORT ── -->
+  <div class="viewport">
+    <div class="viewport-toolbar">
+      <span class="exhibit-title-bar" id="exhibit-title-bar">Оберіть модель</span>
+      <button class="btn-save" id="btn-save" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Зберегти PNG
+      </button>
+    </div>
+
+    <div class="viewer-container" id="viewer-container">
+      <model-viewer
+        id="main-viewer"
+        camera-controls
+        auto-rotate
+        shadow-intensity="1"
+        exposure="1"
+        environment-image="neutral"
+        style="background: transparent;"
+      ></model-viewer>
+      <span class="size-badge" id="size-badge">800 × 800</span>
+    </div>
+
+    <div class="batch-progress" id="batch-progress">
+      <span id="batch-text">Рендеринг 1 / 7…</span>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS PANEL ── -->
+  <div class="panel">
+    <div class="panel-header"><h2>Налаштування</h2></div>
+    <div class="panel-body">
+
+      <!-- Output size -->
+      <div class="setting-group">
+        <div class="setting-title">Розмір PNG</div>
+        <div class="size-btns">
+          <button class="size-btn active" data-w="800"  data-h="800">800</button>
+          <button class="size-btn"        data-w="1024" data-h="1024">1024</button>
+          <button class="size-btn"        data-w="1200" data-h="1600">1200×1600</button>
+          <button class="size-btn"        data-w="2048" data-h="2048">2048</button>
+        </div>
+      </div>
+
+      <!-- Background -->
+      <div class="setting-group">
+        <div class="setting-title">Фон</div>
+        <div class="bg-type-btns">
+          <button class="bg-type-btn active" data-bg="transparent">Прозорий</button>
+          <button class="bg-type-btn"        data-bg="color">Колір</button>
+          <button class="bg-type-btn"        data-bg="white">Білий</button>
+        </div>
+        <div class="setting-row" id="color-row" style="display:none">
+          <label>Колір фону</label>
+          <input type="color" id="bg-color" value="#f8f5f0" />
+        </div>
+      </div>
+
+      <!-- Lighting -->
+      <div class="setting-group">
+        <div class="setting-title">Освітлення</div>
+        <div class="setting-row">
+          <label>Середовище</label>
+          <select class="setting-select" id="env-select">
+            <option value="neutral">Neutral</option>
+            <option value="legacy">Legacy</option>
+            <option value="commerce">Commerce</option>
+          </select>
+        </div>
+        <div class="setting-row">
+          <label>Яскравість</label>
+          <input type="range" id="exposure" min="0.2" max="3" step="0.05" value="1" />
+          <span class="val-badge" id="exposure-val">1.0</span>
+        </div>
+        <div class="setting-row">
+          <label>Тінь</label>
+          <input type="range" id="shadow" min="0" max="1" step="0.05" value="1" />
+          <span class="val-badge" id="shadow-val">1.0</span>
+        </div>
+        <div class="setting-row">
+          <label>М'якість тіні</label>
+          <input type="range" id="shadow-soft" min="0" max="1" step="0.05" value="0.5" />
+          <span class="val-badge" id="shadow-soft-val">0.5</span>
+        </div>
+      </div>
+
+      <!-- Camera -->
+      <div class="setting-group">
+        <div class="setting-title">Камера</div>
+        <div class="orbit-inputs">
+          <div class="setting-row">
+            <label>Горизонталь</label>
+            <input type="range" id="orbit-theta" min="-180" max="180" step="1" value="0" />
+            <span class="val-badge" id="orbit-theta-val">0°</span>
+          </div>
+          <div class="setting-row">
+            <label>Вертикаль</label>
+            <input type="range" id="orbit-phi" min="0" max="180" step="1" value="75" />
+            <span class="val-badge" id="orbit-phi-val">75°</span>
+          </div>
+          <div class="setting-row">
+            <label>Відстань</label>
+            <input type="range" id="orbit-radius" min="50" max="200" step="1" value="100" />
+            <span class="val-badge" id="orbit-radius-val">100%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── State ──────────────────────────────────────
+  let currentExhibit = null;
+  let outputW = 800, outputH = 800;
+  let bgType  = 'transparent';
+  let bgColor = '#f8f5f0';
+
+  const viewer = document.getElementById('main-viewer');
+
+  // ── Build model list ───────────────────────────
+  const listEl = document.getElementById('model-list');
+  (exhibitsData || []).forEach((ex, i) => {
+    const item = document.createElement('div');
+    item.className = 'model-item';
+    item.dataset.id = ex.id;
+    item.innerHTML = `
+      <span class="model-item-num">${i + 1}</span>
+      <span class="model-item-name">${ex.name}</span>
+    `;
+    item.addEventListener('click', () => loadExhibit(ex.id));
+    listEl.appendChild(item);
+  });
+
+  // ── Load exhibit ───────────────────────────────
+  function loadExhibit(id) {
+    const ex = (exhibitsData || []).find(e => e.id === id);
+    if (!ex) return;
+    currentExhibit = ex;
+
+    // Update list active state
+    document.querySelectorAll('.model-item').forEach(el => {
+      el.classList.toggle('active', el.dataset.id === id);
+    });
+
+    document.getElementById('exhibit-title-bar').textContent = ex.name;
+    document.getElementById('btn-save').disabled = false;
+
+    viewer.src = ex.modelUrl || '';
+    applySettings();
+  }
+
+  // ── Apply all settings to viewer ──────────────
+  function applySettings() {
+    // Background
+    const vc = document.getElementById('viewer-container');
+    if (bgType === 'transparent') {
+      viewer.style.background = 'transparent';
+      vc.classList.add('checker');
+    } else if (bgType === 'white') {
+      viewer.style.background = '#ffffff';
+      vc.classList.remove('checker');
+    } else {
+      viewer.style.background = bgColor;
+      vc.classList.remove('checker');
+    }
+
+    // Lighting
+    viewer.setAttribute('environment-image', document.getElementById('env-select').value);
+    viewer.setAttribute('exposure',          document.getElementById('exposure').value);
+    viewer.setAttribute('shadow-intensity',  document.getElementById('shadow').value);
+    viewer.setAttribute('shadow-softness',   document.getElementById('shadow-soft').value);
+
+    // Camera orbit
+    const theta  = document.getElementById('orbit-theta').value;
+    const phi    = document.getElementById('orbit-phi').value;
+    const radius = document.getElementById('orbit-radius').value;
+    viewer.setAttribute('camera-orbit', `${theta}deg ${phi}deg ${radius}%`);
+  }
+
+  // ── Save PNG ───────────────────────────────────
+  async function saveCurrentPNG(exhibit, filename) {
+    exhibit = exhibit || currentExhibit;
+    if (!exhibit) return;
+
+    // Disable auto-rotate for clean shot
+    viewer.removeAttribute('auto-rotate');
+
+    // Wait for model to fully render
+    await viewer.updateComplete;
+    await new Promise(r => setTimeout(r, 600));
+
+    try {
+      const blob = await viewer.toBlob({ idealAspect: false, width: outputW, height: outputH });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = filename || (exhibit.id + '.png');
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('✓ Збережено: ' + a.download);
+    } catch(e) {
+      showToast('Помилка: ' + e.message);
+    }
+
+    viewer.setAttribute('auto-rotate', '');
+  }
+
+  document.getElementById('btn-save').addEventListener('click', () => {
+    saveCurrentPNG(currentExhibit, currentExhibit.id + '.png');
+  });
+
+  // ── Render all ────────────────────────────────
+  document.getElementById('btn-render-all').addEventListener('click', async () => {
+    const btn      = document.getElementById('btn-render-all');
+    const progress = document.getElementById('batch-progress');
+    const fill     = document.getElementById('progress-fill');
+    const text     = document.getElementById('batch-text');
+
+    btn.disabled = true;
+    progress.classList.add('visible');
+    viewer.removeAttribute('auto-rotate');
+
+    const all = exhibitsData || [];
+    for (let i = 0; i < all.length; i++) {
+      const ex = all[i];
+      text.textContent = `Рендеринг ${i + 1} / ${all.length}: ${ex.name}`;
+      fill.style.width  = ((i / all.length) * 100) + '%';
+
+      // Load model
+      viewer.src = ex.modelUrl || '';
+      document.getElementById('exhibit-title-bar').textContent = ex.name;
+      applySettings();
+
+      // Wait for load + render
+      await new Promise(r => {
+        viewer.addEventListener('load', () => setTimeout(r, 800), { once: true });
+        setTimeout(r, 4000); // fallback timeout
+      });
+
+      try {
+        const blob = await viewer.toBlob({ idealAspect: false, width: outputW, height: outputH });
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = ex.id + '.png';
+        a.click();
+        URL.revokeObjectURL(url);
+      } catch(e) {
+        console.error('Failed:', ex.id, e);
+      }
+
+      await new Promise(r => setTimeout(r, 400));
+    }
+
+    fill.style.width = '100%';
+    text.textContent = `Готово! ${all.length} файлів збережено`;
+    btn.disabled = false;
+    viewer.setAttribute('auto-rotate', '');
+    showToast('✓ Всі моделі збережено');
+  });
+
+  // ── Settings controls ─────────────────────────
+
+  // Size buttons
+  document.querySelectorAll('.size-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      outputW = parseInt(btn.dataset.w);
+      outputH = parseInt(btn.dataset.h);
+      document.getElementById('size-badge').textContent = outputW + ' × ' + outputH;
+    });
+  });
+
+  // BG type buttons
+  document.querySelectorAll('.bg-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.bg-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      bgType = btn.dataset.bg;
+      document.getElementById('color-row').style.display = bgType === 'color' ? 'flex' : 'none';
+      applySettings();
+    });
+  });
+
+  document.getElementById('bg-color').addEventListener('input', function() {
+    bgColor = this.value;
+    applySettings();
+  });
+
+  // Range sliders
+  [
+    ['exposure',    'exposure-val',    '',  ''],
+    ['shadow',      'shadow-val',      '',  ''],
+    ['shadow-soft', 'shadow-soft-val', '',  ''],
+    ['orbit-theta', 'orbit-theta-val', '',  '°'],
+    ['orbit-phi',   'orbit-phi-val',   '',  '°'],
+    ['orbit-radius','orbit-radius-val','',  '%'],
+  ].forEach(([id, dispId, pre, suf]) => {
+    document.getElementById(id).addEventListener('input', function() {
+      document.getElementById(dispId).textContent = pre + this.value + suf;
+      applySettings();
+    });
+  });
+
+  document.getElementById('env-select').addEventListener('change', applySettings);
+
+  // ── Toast ──────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+  }
+
+  // ── Init ───────────────────────────────────────
+  if (exhibitsData && exhibitsData.length > 0) {
+    loadExhibit(exhibitsData[0].id);
+  }
+</script>
+</body>
+</html>
