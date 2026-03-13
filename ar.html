@@ -166,14 +166,16 @@
     <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
     <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
-      <a-gltf-model
-        id="ar-model"
-        src="#exhibit-model"
-        rotation="0 0 0"
-        position="0 0 0.05"
-        scale="0.15 0.15 0.15"
-        animation="property: rotation; to: 0 360 0; loop: true; dur: 8000; easing: linear"
-      ></a-gltf-model>
+      <!-- Wrapper rotates around Z axis (= vertical in Mind-AR marker space) -->
+      <a-entity id="ar-wrapper" rotation="0 0 0">
+        <a-gltf-model
+          id="ar-model"
+          src="#exhibit-model"
+          rotation="0 0 0"
+          position="0 0 0.05"
+          scale="0.15 0.15 0.15"
+        ></a-gltf-model>
+      </a-entity>
     </a-entity>
   </a-scene>
 
@@ -284,21 +286,25 @@
 
     // AR positioning — applied after scene loaded so A-Frame doesn't override
     function applyARPositioning() {
-      const model = document.getElementById('ar-model');
+      const model   = document.getElementById('ar-model');
+      const wrapper = document.getElementById('ar-wrapper');
       const scale    = exhibit.arScale    || '0.15 0.15 0.15';
       const position = exhibit.arPosition || '0 0 0.05';
-      const rotation = exhibit.arRotation || '0 0 0';
-      const rotateTo = exhibit.arRotateTo || '0 360 0';
+      const rotation = exhibit.arRotation || '-90 0 0';  // tilt only, no spin
 
+      // Model gets scale, position and tilt (X rotation for Mind-AR coordinate fix)
       model.setAttribute('scale',    scale);
       model.setAttribute('position', position);
       model.setAttribute('rotation', rotation);
-      model.setAttribute('animation',
-        'property: rotation; from: ' + rotation +
-        '; to: ' + rotateTo +
-        '; loop: true; dur: 8000; easing: linear'
+      model.removeAttribute('animation');
+
+      // Wrapper spins around Z axis — this is the vertical axis in Mind-AR marker space
+      wrapper.setAttribute('rotation', '0 0 0');
+      wrapper.setAttribute('animation',
+        'property: rotation; from: 0 0 0; to: 0 0 360; loop: true; dur: 8000; easing: linear'
       );
-      log('AR positioning applied: scale=' + scale + ' rot=' + rotation + ' to=' + rotateTo);
+
+      log('AR positioning applied: scale=' + scale + ' rot=' + rotation);
     }
 
     // ── 3. Scene & AR events ──────────────────────
