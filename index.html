@@ -100,6 +100,8 @@
     @media (min-width: 1200px) { .exhibits-grid { grid-template-columns: repeat(4, 1fr); } }
 
     /* ── Card ── */
+    :root { --card-pad: clamp(14px, 4.5%, 24px); }
+
     .exhibit-card {
       background: #F3F3F3;
       border-radius: 0;
@@ -111,8 +113,7 @@
       opacity: 0;
       animation: cardIn .42s cubic-bezier(.4,0,.2,1) forwards;
       transition: transform var(--tr), box-shadow var(--tr);
-      padding: clamp(16px, 5%, 16px);
-      box-sizing: border-box;
+      /* no padding — controlled per-zone below */
     }
     @media (min-width: 600px) {
       .exhibit-card { width: 100%; margin-left: 0; margin-right: 0; }
@@ -123,18 +124,17 @@
     }
     .exhibit-card:hover .card-img img { transform: scale(1.03); }
 
-    /* Header row */
+    /* Header — bigger top padding, same left/right as card-pad */
     .card-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      margin-bottom: clamp(14px, 4.5%, 22px);
-      min-height: clamp(36px, 9%, 52px);
+      padding: calc(var(--card-pad) * 1.5) var(--card-pad) var(--card-pad);
       flex-shrink: 0;
     }
     .card-icon {
-      width: clamp(32px, 8%, 46px);
-      height: clamp(32px, 8%, 46px);
+      width: clamp(28px, 7.5%, 42px);
+      height: clamp(28px, 7.5%, 42px);
       flex-shrink: 0;
       color: var(--text);
     }
@@ -142,20 +142,20 @@
     .card-num {
       font-family: 'Lora', Georgia, serif;
       font-weight: 500;
-      font-size: clamp(.85rem, 3.5vw, 1.2rem);
+      font-size: clamp(.85rem, 3.5vw, 1.15rem);
       color: var(--text);
       letter-spacing: .02em;
       line-height: 1;
     }
 
-    /* Media — natural image size, no fixed aspect-ratio */
+    /* Media — full width, no side padding; bottom padding = card-pad */
     .card-img {
       width: 100%;
       overflow: hidden;
       background: #D9D9D9;
-      border-radius: 0;
       flex-shrink: 0;
       line-height: 0;
+      margin-bottom: var(--card-pad);
     }
     .card-img img {
       width: 100%;
