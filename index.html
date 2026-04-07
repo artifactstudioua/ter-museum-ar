@@ -93,48 +93,33 @@
     .exhibits-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: clamp(.75rem, 3vw, 1.25rem);
+      gap: clamp(.9rem, 3vw, 1.4rem);
     }
-    @media (min-width: 600px)  { .exhibits-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (min-width: 900px)  { .exhibits-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 1200px) { .exhibits-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 700px)  { .exhibits-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 980px)  { .exhibits-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1280px) { .exhibits-grid { grid-template-columns: repeat(4, 1fr); } }
 
     /* ── Card ──
-       Industry-standard approach: card scales as a unit via width/aspect-ratio.
-       All internal sizing uses % of card width → proportions never shift.
-       Outer card width drives everything; nothing inside uses px or rem.
+       Card scales as a single proportional unit.
+       Internal geometry is locked by absolute placement inside a ratio box,
+       so top / side / bottom offsets do not drift across devices.
     */
     .exhibit-card {
-      container-type: inline-size;
+      position: relative;
+      width: 92%;
+      margin-inline: auto;
+      aspect-ratio: 582 / 770;
       background: #F3F3F3;
       border-radius: 0;
       box-shadow: 0 4px 24px rgba(0,0,0,.09), 0 1px 4px rgba(0,0,0,.06);
       overflow: hidden;
       cursor: pointer;
-
-      /* Card width: near-full on mobile, constrained by grid on desktop */
-      width: 92%;
-      margin-left: auto;
-      margin-right: auto;
-
-      /* Aspect ratio of whole card: header zone + 4:5 image + bottom pad
-         = approx 1 : 1.35 works well visually */
-      aspect-ratio: 20 / 27;
-
-      /* All children laid out in a column */
-      display: flex;
-      flex-direction: column;
-
-      /* Padding: 6% left/right/bottom, 9% top (bigger header space) */
-      padding: 9cqh 6cqw 6cqh;
-      box-sizing: border-box;
-
       opacity: 0;
       animation: cardIn .42s cubic-bezier(.4,0,.2,1) forwards;
       transition: transform var(--tr), box-shadow var(--tr);
     }
-    @media (min-width: 600px) {
-      .exhibit-card { width: 100%; margin-left: 0; margin-right: 0; }
+    @media (min-width: 700px) {
+      .exhibit-card { width: 100%; margin-inline: 0; }
     }
     .exhibit-card:hover {
       transform: translateY(-4px) scale(1.012);
@@ -142,39 +127,45 @@
     }
     .exhibit-card:hover .card-img img { transform: scale(1.03); }
 
-    /* Header row — fixed proportional sizing */
     .card-header {
+      position: absolute;
+      left: 6.0137%;
+      right: 6.0137%;
+      top: 4.5455%;
+      height: 11.039%;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      flex-shrink: 0;
-      margin-bottom: 5%;
+      gap: 12px;
+      z-index: 1;
     }
     .card-icon {
-      /* ~10% of card width */
-      width: 10%;
+      width: 8.25%;
       aspect-ratio: 1;
-      flex-shrink: 0;
+      flex: 0 0 auto;
       color: var(--text);
     }
     .card-icon svg { width: 100%; height: 100%; display: block; }
     .card-num {
       font-family: 'Lora', Georgia, serif;
       font-weight: 500;
-      /* font scales with card width */
-      font-size: 3.8cqw;
+      font-size: clamp(14px, 1.15vw, 20px);
       color: var(--text);
       letter-spacing: .02em;
-      line-height: 1;
+      line-height: 1.08;
+      text-align: right;
+      white-space: nowrap;
+      flex: 0 1 auto;
     }
 
-    /* Media container — fixed 4:5, fills remaining space */
     .card-img {
-      width: 100%;
+      position: absolute;
+      left: 6.0137%;
+      right: 6.0137%;
+      bottom: 4.5455%;
       aspect-ratio: 4 / 5;
       overflow: hidden;
       background: #D9D9D9;
-      flex-shrink: 0;
       line-height: 0;
     }
     .card-img img {
