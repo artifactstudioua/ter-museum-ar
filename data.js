@@ -46,7 +46,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item4.mp3",
     "imageUrl": "./assets/images/item4.jpg",
     "targetIndex": 3,
-    "arScale":    "0.07 0.07 0.07",
+    "arScale":    "0.06 0.06 0.06",
     "arPosition": "0 0 0.05",
     "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
@@ -59,7 +59,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item5.mp3",
     "imageUrl": "./assets/images/item5.jpg",
     "targetIndex": 4,
-    "arScale":    "0.07 0.07 0.07",
+    "arScale":    "0.05 0.05 0.05",
     "arPosition": "0 0 0.05",
     "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
@@ -72,7 +72,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item6.mp3",
     "imageUrl": "./assets/images/item6.jpg",
     "targetIndex": 5,
-    "arScale":    "0.07 0.07 0.07",
+    "arScale":    "0.06 0.06 0.06",
     "arPosition": "0 0 0.05",
     "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
@@ -85,7 +85,7 @@ const exhibitsData = [
     "audioUrl": "./assets/audio/item7.mp3",
     "imageUrl": "./assets/images/item7.jpg",
     "targetIndex": 6,
-    "arScale":    "0.07 0.07 0.07",
+    "arScale":    "0.06 0.06 0.06",
     "arPosition": "0 0 0.05",
     "arRotation": "90 0 0",
     "arRotateTo": "0 360 0"
