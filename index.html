@@ -68,7 +68,7 @@
       font-size: 1.1rem;
     }
     .header-logo-name {
-      font-size: .88rem; font-weight: 700; color: var(--text); display: block; line-height: 1.2;
+      font-size: clamp(.7rem, 2.5vw, .88rem); font-weight: 700; color: var(--text); display: block; line-height: 1.2;
     }
     .header-logo-sub {
       font-size: .6rem; font-weight: 400; color: var(--text-3);
@@ -83,7 +83,7 @@
     }
 
     /* ══ HOME PAGE ══ */
-    #page-home { padding: 1.5rem clamp(1rem, 4vw, 2rem) 3rem; }
+    #page-home { padding: 0; }
 
     .section-label {
       font-size: .68rem; font-weight: 700; letter-spacing: .2em;
@@ -93,33 +93,48 @@
     .exhibits-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: clamp(.9rem, 3vw, 1.4rem);
+      gap: clamp(.75rem, 3vw, 1.25rem);
     }
-    @media (min-width: 700px)  { .exhibits-grid { grid-template-columns: repeat(2, 1fr); } }
-    @media (min-width: 980px)  { .exhibits-grid { grid-template-columns: repeat(3, 1fr); } }
-    @media (min-width: 1280px) { .exhibits-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (min-width: 600px)  { .exhibits-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (min-width: 900px)  { .exhibits-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (min-width: 1200px) { .exhibits-grid { grid-template-columns: repeat(4, 1fr); } }
 
     /* ── Card ──
-       Card scales as a single proportional unit.
-       Internal geometry is locked by absolute placement inside a ratio box,
-       so top / side / bottom offsets do not drift across devices.
+       Industry-standard approach: card scales as a unit via width/aspect-ratio.
+       All internal sizing uses % of card width → proportions never shift.
+       Outer card width drives everything; nothing inside uses px or rem.
     */
     .exhibit-card {
-      position: relative;
-      width: 92%;
-      margin-inline: auto;
-      aspect-ratio: 582 / 770;
+      container-type: inline-size;
       background: #F3F3F3;
       border-radius: 0;
       box-shadow: 0 4px 24px rgba(0,0,0,.09), 0 1px 4px rgba(0,0,0,.06);
       overflow: hidden;
       cursor: pointer;
+
+      /* Card width: near-full on mobile, constrained by grid on desktop */
+      width: 92%;
+      margin-left: auto;
+      margin-right: auto;
+
+      /* Aspect ratio of whole card: header zone + 4:5 image + bottom pad
+         = approx 1 : 1.35 works well visually */
+      aspect-ratio: 20 / 27;
+
+      /* All children laid out in a column */
+      display: flex;
+      flex-direction: column;
+
+      /* Padding: 6% left/right/bottom, 9% top (bigger header space) */
+      padding: 9% 6% 6%;
+      box-sizing: border-box;
+
       opacity: 0;
       animation: cardIn .42s cubic-bezier(.4,0,.2,1) forwards;
       transition: transform var(--tr), box-shadow var(--tr);
     }
-    @media (min-width: 700px) {
-      .exhibit-card { width: 100%; margin-inline: 0; }
+    @media (min-width: 600px) {
+      .exhibit-card { width: 100%; margin-left: 0; margin-right: 0; }
     }
     .exhibit-card:hover {
       transform: translateY(-4px) scale(1.012);
@@ -127,45 +142,39 @@
     }
     .exhibit-card:hover .card-img img { transform: scale(1.03); }
 
+    /* Header row — fixed proportional sizing */
     .card-header {
-      position: absolute;
-      left: 6.0137%;
-      right: 6.0137%;
-      top: 4.5455%;
-      height: 11.039%;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
-      gap: 12px;
-      z-index: 1;
+      flex-shrink: 0;
+      margin-bottom: 5%;
     }
     .card-icon {
-      width: 8.25%;
+      /* ~10% of card width */
+      width: 10%;
       aspect-ratio: 1;
-      flex: 0 0 auto;
+      flex-shrink: 0;
       color: var(--text);
     }
     .card-icon svg { width: 100%; height: 100%; display: block; }
     .card-num {
       font-family: 'Lora', Georgia, serif;
       font-weight: 500;
-      font-size: clamp(14px, 1.15vw, 20px);
+      /* font scales with card width */
+      font-size: 3.8cqw;
       color: var(--text);
       letter-spacing: .02em;
-      line-height: 1.08;
-      text-align: right;
-      white-space: nowrap;
-      flex: 0 1 auto;
+      line-height: 1;
     }
 
+    /* Media container — fixed 4:5, fills remaining space */
     .card-img {
-      position: absolute;
-      left: 6.0137%;
-      right: 6.0137%;
-      bottom: 4.5455%;
+      width: 100%;
       aspect-ratio: 4 / 5;
       overflow: hidden;
       background: #D9D9D9;
+      flex-shrink: 0;
       line-height: 0;
     }
     .card-img img {
@@ -373,6 +382,132 @@
       font-weight: 400; color: var(--text-2); line-height: 1.78;
     }
 
+    /* ══ HERO ══ */
+    .hero {
+      display: flex; flex-direction: column;
+      background: var(--bg);
+      overflow: hidden;
+    }
+
+    /* Mobile: text on top, image below full-width */
+    .hero-text {
+      padding: clamp(2rem, 8vw, 4rem) clamp(1rem, 5vw, 2.5rem) clamp(1.5rem, 5vw, 2.5rem);
+      max-width: 560px;
+    }
+    .hero-eyebrow {
+      font-size: .68rem; font-weight: 700; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--gold);
+      margin-bottom: 1rem; display: block;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2rem, 7vw, 3.5rem);
+      font-weight: 600; line-height: 1.15;
+      color: var(--text); margin-bottom: 1.25rem;
+    }
+    .hero-desc {
+      font-size: clamp(.9rem, 2.2vw, 1.05rem);
+      color: var(--text-2); line-height: 1.75;
+      margin-bottom: 2rem; max-width: 420px;
+    }
+    .hero-cta {
+      display: inline-flex; align-items: center; gap: .6rem;
+      background: var(--text); color: #fff;
+      font-family: 'Manrope', sans-serif;
+      font-size: .92rem; font-weight: 600;
+      padding: .85rem 1.75rem; border-radius: 50px;
+      border: none; cursor: pointer; text-decoration: none;
+      transition: background .22s, transform .18s;
+    }
+    .hero-cta:hover { background: var(--gold); transform: translateY(-2px); }
+    .hero-cta svg { width: 16px; height: 16px; transition: transform .18s; }
+    .hero-cta:hover svg { transform: translateX(3px); }
+
+    .hero-image {
+      width: 100%;
+      flex-shrink: 0;
+      overflow: hidden;
+      max-height: 70vw;
+    }
+    .hero-image img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center 20%;
+      display: block;
+    }
+
+    /* Desktop: side by side */
+    @media (min-width: 768px) {
+      .hero {
+        flex-direction: row;
+        align-items: stretch;
+        min-height: calc(100dvh - 60px);
+      }
+      .hero-text {
+        flex: 1; display: flex; flex-direction: column;
+        justify-content: center;
+        padding: clamp(2rem, 5vw, 5rem) clamp(2rem, 5vw, 4rem);
+      }
+      .hero-image {
+        flex: 0 0 45%;
+        max-height: none;
+      }
+      .hero-image img { object-position: center center; }
+    }
+
+    /* ══ STEPS ══ */
+    .steps-section {
+      background: var(--white);
+      border-top: 1px solid var(--border);
+      padding: clamp(2.5rem, 7vw, 5rem) clamp(1rem, 5vw, 2.5rem);
+      scroll-margin-top: 60px;
+    }
+    .steps-label {
+      font-size: .68rem; font-weight: 700; letter-spacing: .22em;
+      text-transform: uppercase; color: var(--gold);
+      text-align: center; margin-bottom: .75rem;
+    }
+    .steps-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.3rem, 4vw, 2rem);
+      font-weight: 600; color: var(--text);
+      text-align: center; margin-bottom: 3rem;
+    }
+    .steps-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      max-width: 860px; margin: 0 auto;
+    }
+    @media (min-width: 640px) {
+      .steps-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+    }
+    .step {
+      display: flex; flex-direction: column; align-items: flex-start; gap: .75rem;
+    }
+    .step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--gold-pale); border: 1.5px solid var(--gold);
+      color: var(--gold); font-size: .82rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .step-icon {
+      width: 52px; height: 52px; color: var(--text-2);
+    }
+    .step-icon svg { width: 100%; height: 100%; }
+    .step-name {
+      font-size: 1rem; font-weight: 700; color: var(--text); line-height: 1.3;
+    }
+    .step-desc {
+      font-size: .85rem; color: var(--text-2); line-height: 1.6;
+    }
+
+    /* ══ COLLECTION SECTION ══ */
+    .collection-section {
+      padding: clamp(2rem, 5vw, 3.5rem) clamp(1rem, 4vw, 2rem) 3rem;
+      scroll-margin-top: 60px;
+    }
+
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
@@ -386,8 +521,7 @@
     <div class="header-logo" id="logo-btn" role="button" tabindex="0" aria-label="На головну">
       <div class="header-logo-icon">🏛️</div>
       <div>
-        <span class="header-logo-name">Музей</span>
-        <span class="header-logo-sub">Колекція</span>
+        <span class="header-logo-name">Теребовлянський Музей-Майстерня</span>
       </div>
     </div>
     <div class="header-spacer"></div>
@@ -396,8 +530,81 @@
 
   <!-- HOME -->
   <main id="page-home">
-    <p class="section-label">Всі експонати</p>
-    <div class="exhibits-grid" id="exhibits-grid"></div>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero-text">
+        <span class="hero-eyebrow">Теребовлянський Музей-Майстерня</span>
+        <h1 class="hero-title">Досліджуйте&nbsp;експонати у&nbsp;3D та&nbsp;AR</h1>
+        <p class="hero-desc">Інтерактивна AR-колекція музею в Теребовлі, що поєднує фізичні експонати з 3D-моделями та доповненою реальністю.</p>
+        <a class="hero-cta" href="#collection" onclick="document.getElementById('collection').scrollIntoView({behavior:'smooth'});return false;">
+          Переглянути колекцію
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+      <div class="hero-image">
+        <img src="./assets/images/hero.jpg" alt="AR-колекція музею" />
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="steps-section">
+      <p class="steps-label">Як це працює</p>
+      <h2 class="steps-title">Наведіть камеру на листівку&nbsp;—<br>і експонат оживе у вашому просторі</h2>
+      <div class="steps-grid">
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-icon">
+            <svg viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="10" y="6" width="32" height="40" rx="3"/>
+              <line x1="18" y1="14" x2="34" y2="14"/>
+              <line x1="18" y1="21" x2="34" y2="21"/>
+              <line x1="18" y1="28" x2="26" y2="28"/>
+            </svg>
+          </div>
+          <p class="step-name">Отримайте AR-листівку</p>
+          <p class="step-desc">Придбайте листівку з зображенням експоната в музеї або замовте онлайн.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-icon">
+            <svg viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="8" y="8" width="14" height="14" rx="1.5"/>
+              <rect x="30" y="8" width="14" height="14" rx="1.5"/>
+              <rect x="8" y="30" width="14" height="14" rx="1.5"/>
+              <rect x="12" y="12" width="6" height="6"/>
+              <rect x="34" y="12" width="6" height="6"/>
+              <rect x="12" y="34" width="6" height="6"/>
+              <path d="M30 30h4v4h-4zM38 30h6M30 38v6M38 38h6v6h-6z"/>
+            </svg>
+          </div>
+          <p class="step-name">Відскануйте QR-код</p>
+          <p class="step-desc">Відскануйте QR-код на листівці і відкрийте сторінку експоната в браузері.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-icon">
+            <svg viewBox="0 0 52 52" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="14" y="6" width="24" height="40" rx="3"/>
+              <circle cx="26" cy="38" r="2"/>
+              <path d="M6 16c3-4 8-7 20-7s17 3 20 7"/>
+              <path d="M10 22c2-3 7-5 16-5s14 2 16 5"/>
+            </svg>
+          </div>
+          <p class="step-name">Досліджуйте у 3D та AR</p>
+          <p class="step-desc">Наведіть камеру на листівку — і 3D-модель експоната з'явиться просто перед вами.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- COLLECTION -->
+    <section class="collection-section" id="collection">
+      <p class="section-label">Колекція</p>
+      <div class="exhibits-grid" id="exhibits-grid"></div>
+    </section>
+
   </main>
 
   <!-- EXHIBIT -->
