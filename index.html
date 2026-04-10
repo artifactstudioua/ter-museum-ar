@@ -415,6 +415,7 @@
     .hero-text {
       position: relative; z-index: 1;
       width: 100%;
+      box-sizing: border-box;
       padding: clamp(2rem, 8vw, 4rem) clamp(1.25rem, 5vw, 3rem) clamp(2.5rem, 8vw, 4rem);
       max-width: 620px;
     }
@@ -425,25 +426,33 @@
     }
     .hero-title {
       font-family: 'Playfair Display', Georgia, serif;
-      font-size: clamp(2.2rem, 7vw, 3.8rem);
+      font-size: clamp(1.9rem, 8vw, 3.8rem);
       font-weight: 600; line-height: 1.12;
       color: var(--text); margin-bottom: 1.25rem;
+      word-break: keep-all;
+      overflow-wrap: break-word;
     }
     .hero-desc {
-      font-size: clamp(.9rem, 2.2vw, 1.05rem);
+      font-size: clamp(.88rem, 3.5vw, 1.05rem);
       color: var(--text-2); line-height: 1.75;
       margin-bottom: 2rem; max-width: 440px;
     }
     .hero-cta {
-      display: inline-flex; align-items: center; gap: .6rem;
-      background: var(--text); color: #fff;
+      display: inline-flex; align-items: center; gap: .65rem;
+      background: linear-gradient(135deg, #4a7fa5 0%, #2d5f85 100%);
+      color: #fff;
       font-family: 'Manrope', sans-serif;
       font-size: .92rem; font-weight: 600;
       padding: .85rem 1.75rem; border-radius: 50px;
       border: none; cursor: pointer; text-decoration: none;
-      transition: background .22s, transform .18s;
+      box-shadow: 0 4px 18px rgba(45,95,133,.35);
+      transition: opacity .22s, transform .18s, box-shadow .18s;
     }
-    .hero-cta:hover { background: var(--gold); transform: translateY(-2px); }
+    .hero-cta:hover {
+      opacity: .88;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(45,95,133,.45);
+    }
     .hero-cta svg { width: 16px; height: 16px; transition: transform .18s; }
     .hero-cta:hover svg { transform: translateX(3px); }
 
