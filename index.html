@@ -474,6 +474,7 @@
       font-size: clamp(1.3rem, 4vw, 2rem);
       font-weight: 600; color: var(--text);
       text-align: center; margin-bottom: 3rem;
+      hyphens: none;
     }
     .steps-grid {
       display: grid;
@@ -485,7 +486,11 @@
       .steps-grid { grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
     }
     .step {
-      display: flex; flex-direction: column; align-items: flex-start; gap: .75rem;
+      display: flex; flex-direction: column; align-items: center; gap: .75rem;
+      text-align: center;
+    }
+    @media (min-width: 640px) {
+      .step { align-items: flex-start; text-align: left; }
     }
     .step-num {
       width: 36px; height: 36px; border-radius: 50%;
