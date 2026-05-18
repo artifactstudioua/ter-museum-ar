@@ -2,11 +2,10 @@
 <html lang="uk">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>AR — Музей</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Debug — Налаштування моделі</title>
 
   <script src="https://aframe.io/releases/1.4.2/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
   <script src="data.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -17,363 +16,503 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --gold:      #b38b24;
-      --gold-lite: #d4a93a;
-      --gold-pale: rgba(179,139,36,.15);
-      --white:     #ffffff;
-      --bg:        #f8f5f0;
-      --text:      #1a1410;
-      --text-2:    #5a5248;
-      --radius:    18px;
-      --tr:        .28s cubic-bezier(.4,0,.2,1);
+      --gold:   #b38b24;
+      --bg:     #f8f5f0;
+      --white:  #ffffff;
+      --text:   #1a1410;
+      --text-2: #5a5248;
+      --text-3: #9a9088;
+      --border: #e4ddd3;
+      --green:  #2a9d5c;
+      --radius: 14px;
+      --panel:  320px;
     }
 
-    html, body {
-      width: 100%; height: 100%;
-      font-family: 'Manrope', sans-serif;
-      background: transparent;
+    html, body { height: 100%; font-family: 'Manrope', sans-serif; background: var(--bg); }
+
+    .layout { display: flex; height: 100dvh; overflow: hidden; }
+
+    /* ── Viewport ── */
+    .viewport {
+      flex: 1; position: relative;
+      background: #1a1a2e; overflow: hidden;
     }
 
-    /* Do NOT touch a-scene — Mind-AR owns it */
-
-    /* Ensure Mind-AR's injected video is always visible */
-    video { display: block !important; }
-
-    #btn-back {
-      position: fixed;
-      top: clamp(12px, 3vw, 20px);
-      left: clamp(12px, 3vw, 20px);
-      z-index: 9990;
-      display: none;
-      align-items: center; gap: .45rem;
-      background: rgba(255,255,255,.92);
-      backdrop-filter: blur(12px);
-      border: 1.5px solid rgba(255,255,255,.6);
-      color: var(--text);
-      font-family: 'Manrope', sans-serif;
-      font-size: .8rem; font-weight: 600;
-      padding: .5rem 1rem .5rem .7rem;
-      border-radius: 30px;
-      cursor: pointer;
-      box-shadow: 0 2px 16px rgba(0,0,0,.18);
-      text-decoration: none;
+    a-scene {
+      width: 100% !important; height: 100% !important;
+      position: absolute !important; top: 0; left: 0;
     }
-    #btn-back svg { width: 15px; height: 15px; flex-shrink: 0; }
 
-    #exhibit-badge {
-      position: fixed;
-      bottom: clamp(24px, 5vw, 40px);
-      left: 50%;
-      transform: translateX(-50%) translateY(12px);
-      z-index: 9990;
-      background: rgba(255,255,255,.92);
-      backdrop-filter: blur(14px);
-      border: 1.5px solid rgba(255,255,255,.5);
-      border-radius: var(--radius);
-      padding: .75rem 1.25rem;
-      text-align: center;
-      min-width: 200px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.2);
-      opacity: 0;
-      transition: opacity .4s ease, transform .4s ease;
-      pointer-events: none;
+    .viewport-label {
+      position: absolute; top: 12px; left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,.5); color: rgba(255,255,255,.7);
+      font-size: .65rem; font-weight: 600; letter-spacing: .12em;
+      text-transform: uppercase; padding: .3rem .8rem;
+      border-radius: 20px; pointer-events: none; z-index: 10;
     }
-    #exhibit-badge.visible {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
+
+    /* ── Panel ── */
+    .panel {
+      width: var(--panel); flex-shrink: 0;
+      background: var(--white); border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; overflow: hidden;
     }
-    #badge-num { font-size: .6rem; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: .2rem; }
-    #badge-name { font-size: .95rem; font-weight: 700; color: var(--text); }
-    #badge-audio-icon { display: flex; align-items: center; justify-content: center; gap: .3rem; margin-top: .35rem; font-size: .62rem; font-weight: 500; color: var(--text-2); }
-    #badge-audio-icon svg { width: 11px; height: 11px; color: var(--gold); }
 
-    #overlay {
-      position: fixed; inset: 0; z-index: 9995;
-      background: var(--bg);
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      padding: 2rem;
-      transition: opacity .5s ease;
+    .panel-header {
+      padding: 1rem 1.1rem .75rem;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
-    #overlay.hiding { opacity: 0; pointer-events: none; }
+    .panel-header h1 { font-size: .95rem; font-weight: 700; color: var(--text); margin-bottom: .2rem; }
+    .panel-header p  { font-size: .7rem; color: var(--text-3); line-height: 1.4; }
 
-    .overlay-logo { width: 60px; height: 60px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.8rem; margin-bottom: 1.5rem; box-shadow: 0 4px 20px rgba(179,139,36,.4); }
-    .overlay-eyebrow { font-size: .65rem; font-weight: 700; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); margin-bottom: .6rem; }
-    .overlay-title { font-size: clamp(1.5rem, 5vw, 2.2rem); font-weight: 800; color: var(--text); text-align: center; line-height: 1.2; margin-bottom: .75rem; }
-    .overlay-exhibit-name { font-size: clamp(1rem, 3vw, 1.3rem); font-weight: 500; color: var(--text-2); text-align: center; margin-bottom: 2.5rem; max-width: 320px; line-height: 1.4; }
-    .overlay-instruction { background: var(--white); border: 1.5px solid #e4ddd3; border-radius: var(--radius); padding: 1rem 1.25rem; margin-bottom: 2rem; max-width: 320px; width: 100%; display: flex; flex-direction: column; gap: .65rem; }
-    .instr-row { display: flex; align-items: center; gap: .75rem; }
-    .instr-num { width: 26px; height: 26px; border-radius: 50%; background: var(--gold-pale); border: 1.5px solid rgba(179,139,36,.3); color: var(--gold); font-size: .72rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .instr-text { font-size: .8rem; font-weight: 500; color: var(--text-2); line-height: 1.35; }
-
-    #btn-start {
-      width: 100%; max-width: 320px;
-      display: flex; align-items: center; justify-content: center; gap: .65rem;
-      background: var(--gold); color: #fff;
-      font-family: 'Manrope', sans-serif;
-      font-size: 1rem; font-weight: 700;
-      padding: 1rem 2rem; border-radius: 50px; border: none; cursor: pointer;
-      box-shadow: 0 6px 24px rgba(179,139,36,.45);
+    .exhibit-select-wrap {
+      padding: .75rem 1.1rem;
+      border-bottom: 1px solid var(--border); flex-shrink: 0;
     }
-    #btn-start svg { width: 20px; height: 20px; }
-
-    #error-screen {
-      position: fixed; inset: 0; z-index: 9998;
-      background: var(--bg); display: none;
-      flex-direction: column; align-items: center; justify-content: center;
-      padding: 2rem; text-align: center; gap: 1rem;
+    .exhibit-select-wrap label {
+      display: block; font-size: .62rem; font-weight: 700;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: var(--text-3); margin-bottom: .4rem;
     }
-    #error-screen.visible { display: flex; }
-    #error-screen h2 { font-size: 1.4rem; font-weight: 700; color: var(--text); }
-    #error-screen p { font-size: .9rem; color: var(--text-2); max-width: 300px; line-height: 1.6; }
-    .btn-error-back { display: inline-flex; align-items: center; gap: .45rem; background: var(--white); border: 1.5px solid #e4ddd3; color: var(--text-2); font-family: 'Manrope', sans-serif; font-size: .82rem; font-weight: 600; padding: .6rem 1.2rem; border-radius: 30px; cursor: pointer; text-decoration: none; margin-top: .5rem; }
+    select {
+      width: 100%; font-family: 'Manrope', sans-serif;
+      font-size: .82rem; font-weight: 500; color: var(--text);
+      background: var(--bg); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: .5rem .75rem; cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239a9088' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat; background-position: right .75rem center;
+    }
+    select:focus { outline: none; border-color: var(--gold); }
 
-    /* ── DEBUG LOG ── */
-    #debug-log {
-      position: fixed;
-      bottom: 80px; left: 8px; right: 8px;
-      z-index: 9999;
-      background: rgba(0,0,0,.82);
-      color: #00ff88;
-      font: 11px/1.5 monospace;
-      padding: 8px 10px;
-      border-radius: 10px;
-      max-height: 240px;
-      overflow-y: auto;
-      pointer-events: none;
+    .panel-body {
+      flex: 1; overflow-y: auto; padding: .75rem 1.1rem;
+      display: flex; flex-direction: column; gap: .6rem;
+    }
+
+    .slider-group {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .7rem .85rem;
+    }
+    .slider-group-title {
+      font-size: .62rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--gold); margin-bottom: .6rem;
+    }
+    .slider-group-sub {
+      font-size: .67rem; color: var(--text-3); margin-bottom: .55rem; line-height: 1.4;
+    }
+
+    .slider-row {
+      display: grid; grid-template-columns: 16px 1fr 52px;
+      align-items: center; gap: .5rem; margin-bottom: .45rem;
+    }
+    .slider-row:last-child { margin-bottom: 0; }
+
+    .axis-label { font-size: .72rem; font-weight: 700; color: var(--text-2); text-align: center; }
+
+    input[type=range] { width: 100%; accent-color: var(--gold); cursor: pointer; height: 4px; }
+
+    .val-display {
+      font-size: .72rem; font-weight: 600; color: var(--text);
+      text-align: right; font-variant-numeric: tabular-nums;
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: 5px; padding: .2rem .35rem; min-width: 48px;
+    }
+
+    /* Axis buttons */
+    .axis-btns { display: flex; gap: .5rem; }
+    .axis-btn {
+      flex: 1; background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text-2); font-family: 'Manrope', sans-serif;
+      font-size: .72rem; font-weight: 700;
+      padding: .4rem .3rem; border-radius: 8px; cursor: pointer; transition: .18s;
+    }
+    .axis-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .axis-btn.active { background: var(--gold); border-color: var(--gold); color: #fff; }
+
+    /* Info box */
+    .info-box {
+      background: #fff8ec; border: 1px solid #e8c97a;
+      border-radius: 10px; padding: .6rem .8rem;
+      font-size: .7rem; color: #7a5c00; line-height: 1.5;
+    }
+    .info-box strong { font-weight: 700; }
+
+    /* Footer */
+    .panel-footer {
+      padding: .85rem 1.1rem; border-top: 1px solid var(--border);
+      flex-shrink: 0; display: flex; flex-direction: column; gap: .55rem;
+    }
+    .output-label {
+      font-size: .62rem; font-weight: 700; letter-spacing: .14em;
+      text-transform: uppercase; color: var(--text-3);
+    }
+    .output-box {
+      background: #1a1410; border-radius: 10px;
+      padding: .65rem .85rem; font: 11px/1.7 monospace;
+      color: #d4a93a; white-space: pre; overflow-x: auto;
+      cursor: pointer; transition: background .2s; position: relative;
+    }
+    .output-box:hover { background: #2a2018; }
+    .output-box:hover::after {
+      content: 'Копіювати';
+      position: absolute; top: 6px; right: 8px;
+      font: 600 .6rem 'Manrope', sans-serif;
+      color: var(--gold); letter-spacing: .08em; text-transform: uppercase;
+    }
+
+    .btn-reset {
+      width: 100%; background: var(--bg); border: 1.5px solid var(--border);
+      color: var(--text-2); font-family: 'Manrope', sans-serif;
+      font-size: .75rem; font-weight: 600;
+      padding: .5rem; border-radius: 8px; cursor: pointer; transition: .2s;
+    }
+    .btn-reset:hover { border-color: var(--gold); color: var(--gold); }
+
+    .copied-toast {
+      position: fixed; bottom: 80px; left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--green); color: #fff;
+      font-size: .78rem; font-weight: 700;
+      padding: .5rem 1.2rem; border-radius: 30px;
+      box-shadow: 0 4px 16px rgba(42,157,92,.4);
+      opacity: 0; transition: opacity .25s, transform .25s;
+      pointer-events: none; z-index: 9999;
+    }
+    .copied-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 640px) {
+      .layout { flex-direction: column; }
+      .viewport { flex: 0 0 42dvh; }
+      .panel { width: 100%; border-left: none; border-top: 1px solid var(--border); flex: 1; }
     }
   </style>
 </head>
 <body>
 
-  <!-- A-FRAME SCENE — статична, Mind-AR управляє canvas -->
-  <a-scene
-    id="ar-scene"
-    mindar-image="imageTargetSrc: ./assets/targets.mind; autoStart: false; uiLoading: no; uiError: no; uiScanning: no; filterMinCF: 0.0001; filterBeta: 0.001; missTolerance: 10; warmupTolerance: 10;"
-    color-space="sRGB"
-    renderer="colorManagement: true; physicallyCorrectLights: true"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false"
-  >
-    <a-assets>
-      <a-asset-item id="exhibit-model" src=""></a-asset-item>
-    </a-assets>
+<div class="layout">
 
-    <a-light type="ambient"     color="#ffffff" intensity="0.6"></a-light>
-    <a-light type="directional" color="#fff8ee" intensity="1.4" position="1 3 2"></a-light>
-    <a-light type="directional" color="#ddeeff" intensity="0.4" position="-2 1 -1"></a-light>
+  <!-- ── VIEWPORT ── -->
+  <div class="viewport">
+    <span class="viewport-label">3D перегляд — перетягни для огляду</span>
+    <a-scene
+      embedded
+      renderer="colorManagement: true; physicallyCorrectLights: true"
+      vr-mode-ui="enabled: false"
+      device-orientation-permission-ui="enabled: false"
+    >
+      <a-light type="ambient"     color="#ffffff" intensity="0.7"></a-light>
+      <a-light type="directional" color="#fff8ee" intensity="1.4" position="1 3 2"></a-light>
+      <a-light type="directional" color="#ddeeff" intensity="0.4" position="-2 1 -1"></a-light>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      <a-grid color="#444" opacity="0.3" position="0 -0.5 -2"></a-grid>
 
-    <a-entity id="ar-target" mindar-image-target="targetIndex: 0">
-      <!-- Wrapper rotates around Z axis (= vertical in Mind-AR marker space) -->
-      <a-entity id="ar-wrapper" rotation="0 0 0">
+      <a-camera position="0 0.5 2"
+        look-controls="magicWindowTrackingEnabled: false"
+        wasd-controls="enabled: false">
+      </a-camera>
+
+      <!-- Model loaded directly via src, no a-assets -->
+      <a-entity id="model-wrapper" position="0 0 -2">
         <a-gltf-model
-          id="ar-model"
-          src="#exhibit-model"
-          rotation="0 0 0"
-          position="0 0 0.05"
+          id="debug-model-el"
+          src=""
           scale="0.15 0.15 0.15"
+          position="0 0 0"
+          rotation="0 0 0"
         ></a-gltf-model>
       </a-entity>
-    </a-entity>
-  </a-scene>
-
-  <!-- ERROR -->
-  <div id="error-screen">
-    <div style="font-size:3rem">⚠️</div>
-    <h2>Помилка</h2>
-    <p id="error-msg">Експонат не знайдено.</p>
-    <a href="index.html" class="btn-error-back">← Повернутись до колекції</a>
+    </a-scene>
   </div>
 
-  <!-- OVERLAY -->
-  <div id="overlay">
-    <div class="overlay-logo">🏛️</div>
-    <p class="overlay-eyebrow">Доповнена реальність</p>
-    <h1 class="overlay-title">AR-перегляд</h1>
-    <p class="overlay-exhibit-name" id="overlay-exhibit-name">Завантаження…</p>
-    <div class="overlay-instruction">
-      <div class="instr-row"><span class="instr-num">1</span><span class="instr-text">Дозвольте доступ до камери</span></div>
-      <div class="instr-row"><span class="instr-num">2</span><span class="instr-text">Наведіть камеру на листівку експоната</span></div>
-      <div class="instr-row"><span class="instr-num">3</span><span class="instr-text">Дочекайтесь появи 3D-моделі та звуку</span></div>
+  <!-- ── PANEL ── -->
+  <div class="panel">
+    <div class="panel-header">
+      <h1>AR Debug</h1>
+      <p>Налаштуй модель і скопіюй значення в data.js</p>
     </div>
-    <button id="btn-start">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-        <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-      </svg>
-      Запустити AR
-    </button>
-  </div>
 
-  <!-- BACK -->
-  <a href="index.html" id="btn-back">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M19 12H5M12 5l-7 7 7 7"/>
-    </svg>
-    Назад
-  </a>
+    <div class="exhibit-select-wrap">
+      <label>Експонат</label>
+      <select id="exhibit-select"></select>
+    </div>
 
-  <!-- BADGE -->
-  <div id="exhibit-badge">
-    <p id="badge-num"></p>
-    <p id="badge-name"></p>
-    <div id="badge-audio-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-        <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
-      </svg>
-      Аудіогід відтворюється
+    <div class="panel-body">
+
+      <div class="info-box">
+        <strong>Як це працює:</strong> налаштовуй модель тут так, щоб вона стояла вертикально і виглядала правильно. При копіюванні координати автоматично конвертуються для Mind-AR.
+      </div>
+
+      <!-- Scale -->
+      <div class="slider-group">
+        <div class="slider-group-title">Scale (розмір)</div>
+        <div class="slider-row">
+          <span class="axis-label">S</span>
+          <input type="range" id="s-uniform" min="0.01" max="1" step="0.005" value="0.15" />
+          <span class="val-display" id="s-val">0.15</span>
+        </div>
+      </div>
+
+      <!-- Position -->
+      <div class="slider-group">
+        <div class="slider-group-title">Position (зміщення)</div>
+        <div class="slider-row">
+          <span class="axis-label">X</span>
+          <input type="range" id="pos-x" min="-1" max="1" step="0.01" value="0" />
+          <span class="val-display" id="pos-x-val">0</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Y</span>
+          <input type="range" id="pos-y" min="-1" max="1" step="0.01" value="0" />
+          <span class="val-display" id="pos-y-val">0</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Z</span>
+          <input type="range" id="pos-z" min="-1" max="1" step="0.01" value="0.05" />
+          <span class="val-display" id="pos-z-val">0.05</span>
+        </div>
+      </div>
+
+      <!-- Rotation -->
+      <div class="slider-group">
+        <div class="slider-group-title">Rotation (початковий кут)</div>
+        <div class="slider-group-sub">Виправ нахил моделі тут. Конвертація для AR відбудеться автоматично.</div>
+        <div class="slider-row">
+          <span class="axis-label">X</span>
+          <input type="range" id="rot-x" min="-180" max="180" step="1" value="0" />
+          <span class="val-display" id="rot-x-val">0°</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Y</span>
+          <input type="range" id="rot-y" min="-180" max="180" step="1" value="0" />
+          <span class="val-display" id="rot-y-val">0°</span>
+        </div>
+        <div class="slider-row">
+          <span class="axis-label">Z</span>
+          <input type="range" id="rot-z" min="-180" max="180" step="1" value="0" />
+          <span class="val-display" id="rot-z-val">0°</span>
+        </div>
+      </div>
+
+      <!-- Rotate axis -->
+      <div class="slider-group">
+        <div class="slider-group-title">Вісь обертання</div>
+        <div class="slider-group-sub">Навколо якої осі крутиться модель в AR</div>
+        <div class="axis-btns">
+          <button class="axis-btn" data-axis="x">X</button>
+          <button class="axis-btn active" data-axis="y">Y</button>
+          <button class="axis-btn" data-axis="z">Z</button>
+          <button class="axis-btn" data-axis="none">Стоп</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="panel-footer">
+      <div class="output-label">Скопіюй в data.js</div>
+      <div class="output-box" id="output-box" onclick="copyOutput()"></div>
+      <button class="btn-reset" onclick="resetAll()">↺ Скинути до дефолту</button>
     </div>
   </div>
+</div>
 
-  <!-- AUDIO -->
-  <audio id="ar-audio" loop preload="auto">
-    <source id="ar-audio-src" src="" type="audio/mpeg" />
-  </audio>
+<div class="copied-toast" id="copied-toast">✓ Скопійовано!</div>
 
-  <!-- DEBUG LOG -->
-  <div id="debug-log"></div>
+<script>
+  // ── State ──────────────────────────────────────
+  let rotateAxis = 'y';
 
-  <script>
-    // ── Debug helper ──────────────────────────────
-    function log(msg) {
-      const el = document.getElementById('debug-log');
-      const line = document.createElement('div');
-      line.textContent = new Date().toISOString().slice(11, 19) + '  ' + msg;
-      el.appendChild(line);
-      el.scrollTop = el.scrollHeight;
-      console.log('[AR]', msg);
+  // ── Populate selector ─────────────────────────
+  const sel = document.getElementById('exhibit-select');
+  (exhibitsData || []).forEach((ex, i) => {
+    const opt = document.createElement('option');
+    opt.value = ex.id;
+    opt.textContent = (i + 1) + '. ' + ex.name;
+    sel.appendChild(opt);
+  });
+
+  const urlId = new URLSearchParams(window.location.search).get('id');
+  if (urlId) sel.value = urlId;
+
+  // ── Load exhibit ───────────────────────────────
+  function loadExhibit(id) {
+    const ex = (exhibitsData || []).find(e => e.id === id);
+    if (!ex) return;
+
+    // Fix: load model directly on gltf-model, bypass a-assets caching
+    const modelEl = document.getElementById('debug-model-el');
+    modelEl.setAttribute('src', '');                     // force reset
+    setTimeout(() => {
+      modelEl.setAttribute('src', ex.modelUrl || '');    // then load new
+    }, 50);
+
+    // Load existing AR values — convert FROM ar format (mind-ar) TO debug format
+    // Mind-AR has -90 X offset baked in, so we add +90 to show correctly here
+    if (ex.arScale) {
+      const s = parseFloat(ex.arScale.split(' ')[0]);
+      setSlider('s-uniform', 's-val', s, '');
     }
-    window.addEventListener('error', ev => log('JS ERROR: ' + ev.message));
-
-    // ── 1. Exhibit from URL ───────────────────────
-    const rawId = new URLSearchParams(window.location.search).get('id');
-    log('page loaded, id=' + rawId);
-
-    const exhibit = (exhibitsData || []).find(e => String(e.id) === String(rawId));
-    log('exhibit found: ' + (exhibit ? exhibit.name : 'NO'));
-
-    function showError(msg) {
-      document.getElementById('overlay').style.display = 'none';
-      document.getElementById('error-msg').textContent = msg;
-      document.getElementById('error-screen').classList.add('visible');
+    if (ex.arPosition) {
+      const [px, py, pz] = ex.arPosition.split(' ').map(Number);
+      setSlider('pos-x', 'pos-x-val', px, '');
+      setSlider('pos-y', 'pos-y-val', py, '');
+      setSlider('pos-z', 'pos-z-val', pz, '');
+    }
+    if (ex.arRotation) {
+      // Add back the +90 that gets subtracted on export
+      const [rx, ry, rz] = ex.arRotation.split(' ').map(Number);
+      setSlider('rot-x', 'rot-x-val', rx + 90, '°');
+      setSlider('rot-y', 'rot-y-val', ry, '°');
+      setSlider('rot-z', 'rot-z-val', rz, '°');
+    }
+    if (ex.arRotateTo) {
+      const parts = ex.arRotateTo.split(' ').map(Number);
+      const [arx, ary, arz] = ex.arRotation ? ex.arRotation.split(' ').map(Number) : [0,0,0];
+      if (parts[0] !== arx) rotateAxis = 'x';
+      else if (parts[2] !== arz) rotateAxis = 'z';
+      else if (parts[1] !== ary) rotateAxis = 'y';
+      else rotateAxis = 'none';
+      updateAxisBtns();
     }
 
-    if (!rawId || !exhibit) {
-      showError('Експонат не знайдено. Перевірте посилання.');
-    } else {
-      initData();
-    }
+    applyToScene();
+    updateOutput();
+  }
 
-    // ── 2. Inject data into static scene ─────────
-    function initData() {
-      const idx         = exhibitsData.indexOf(exhibit);
-      const targetIndex = exhibit.targetIndex !== undefined ? exhibit.targetIndex : idx;
-      log('targetIndex=' + targetIndex + ', modelUrl=' + exhibit.modelUrl);
+  function setSlider(sliderId, displayId, value, suffix) {
+    const input = document.getElementById(sliderId);
+    const disp  = document.getElementById(displayId);
+    input.value = value;
+    disp.textContent = value + suffix;
+  }
 
-      document.getElementById('overlay-exhibit-name').textContent = exhibit.name;
-      document.getElementById('badge-num').textContent = 'Експонат № ' + String(idx + 1).padStart(2, '0');
-      document.getElementById('badge-name').textContent = exhibit.name;
+  sel.addEventListener('change', () => loadExhibit(sel.value));
 
-      document.getElementById('ar-audio-src').src = exhibit.audioUrl || '';
-      document.getElementById('ar-audio').load();
+  // ── Apply to A-Frame scene ─────────────────────
+  function applyToScene() {
+    const s  = parseFloat(document.getElementById('s-uniform').value);
+    const px = parseFloat(document.getElementById('pos-x').value);
+    const py = parseFloat(document.getElementById('pos-y').value);
+    const pz = parseFloat(document.getElementById('pos-z').value);
+    const rx = parseInt(document.getElementById('rot-x').value);
+    const ry = parseInt(document.getElementById('rot-y').value);
+    const rz = parseInt(document.getElementById('rot-z').value);
 
-      document.getElementById('exhibit-model').setAttribute('src', exhibit.modelUrl || '');
-      document.getElementById('ar-target').setAttribute('mindar-image-target', 'targetIndex: ' + targetIndex);
-    }
+    const modelEl = document.getElementById('debug-model-el');
+    modelEl.setAttribute('scale',    `${s} ${s} ${s}`);
+    modelEl.setAttribute('position', `${px} ${py} ${pz}`);
+    modelEl.setAttribute('rotation', `${rx} ${ry} ${rz}`);
 
-    // AR positioning — applied after scene loaded so A-Frame doesn't override
-    function applyARPositioning() {
-      const model   = document.getElementById('ar-model');
-      const wrapper = document.getElementById('ar-wrapper');
-      const scale    = exhibit.arScale    || '0.15 0.15 0.15';
-      const position = exhibit.arPosition || '0 0 0.05';
-      const rotation = exhibit.arRotation || '-90 0 0';  // tilt only, no spin
-
-      // Model gets scale, position and tilt (X rotation for Mind-AR coordinate fix)
-      model.setAttribute('scale',    scale);
-      model.setAttribute('position', position);
-      model.setAttribute('rotation', rotation);
-      model.removeAttribute('animation');
-
-      // Wrapper spins around Z axis — this is the vertical axis in Mind-AR marker space
-      wrapper.setAttribute('rotation', '0 0 0');
-      wrapper.setAttribute('animation',
-        'property: rotation; from: 0 0 0; to: 0 0 360; loop: true; dur: 16000; easing: linear'
+    // Animate rotation preview
+    const rotateTo = getDebugRotateTo(rx, ry, rz);
+    if (rotateAxis !== 'none') {
+      modelEl.setAttribute('animation',
+        `property: rotation; from: ${rx} ${ry} ${rz}; to: ${rotateTo}; loop: true; dur: 5000; easing: linear`
       );
-
-      log('AR positioning applied: scale=' + scale + ' rot=' + rotation);
+    } else {
+      modelEl.removeAttribute('animation');
     }
 
-    // ── 3. Scene & AR events ──────────────────────
-    const scene   = document.getElementById('ar-scene');
-    const audioEl = document.getElementById('ar-audio');
-    const badge   = document.getElementById('exhibit-badge');
+    updateOutput();
+  }
 
-    scene.addEventListener('loaded', () => {
-      log('a-scene loaded');
-      log('mindar-image-system exists: ' + !!(scene.systems && scene.systems['mindar-image-system']));
+  // Rotate-to for debug preview (no offset)
+  function getDebugRotateTo(rx, ry, rz) {
+    if (rotateAxis === 'x') return `${rx + 360} ${ry} ${rz}`;
+    if (rotateAxis === 'y') return `${rx} ${ry + 360} ${rz}`;
+    if (rotateAxis === 'z') return `${rx} ${ry} ${rz + 360}`;
+    return `${rx} ${ry} ${rz}`;
+  }
 
-      // Apply AR positioning now that A-Frame components are fully initialised
-      if (exhibit) applyARPositioning();
+  // ── Output: convert debug coords → Mind-AR coords ──
+  // Mind-AR marker lies flat, so we subtract 90° from X to compensate
+  function updateOutput() {
+    const s  = parseFloat(document.getElementById('s-uniform').value);
+    const px = parseFloat(document.getElementById('pos-x').value);
+    const py = parseFloat(document.getElementById('pos-y').value);
+    const pz = parseFloat(document.getElementById('pos-z').value);
+    const rx = parseInt(document.getElementById('rot-x').value);
+    const ry = parseInt(document.getElementById('rot-y').value);
+    const rz = parseInt(document.getElementById('rot-z').value);
 
-      const target = document.getElementById('ar-target');
-      target.addEventListener('targetFound', () => {
-        log('targetFound!');
-        audioEl.play().catch(e => log('audio play error: ' + e));
-        badge.classList.add('visible');
-      });
-      target.addEventListener('targetLost', () => {
-        log('targetLost');
-        audioEl.pause();
-        badge.classList.remove('visible');
-      });
+    // Convert: subtract 90 from X for Mind-AR
+    const arRx = rx - 90;
+    const arRy = ry;
+    const arRz = rz;
+
+    let arRotateTo;
+    if (rotateAxis === 'x') arRotateTo = `${arRx + 360} ${arRy} ${arRz}`;
+    else if (rotateAxis === 'y') arRotateTo = `${arRx} ${arRy + 360} ${arRz}`;
+    else if (rotateAxis === 'z') arRotateTo = `${arRx} ${arRy} ${arRz + 360}`;
+    else arRotateTo = `${arRx} ${arRy} ${arRz}`;
+
+    const sv = s.toFixed(3).replace(/\.?0+$/, '') || '0';
+    const out =
+      `"arScale":    "${sv} ${sv} ${sv}",\n` +
+      `"arPosition": "${px} ${py} ${pz}",\n` +
+      `"arRotation": "${arRx} ${arRy} ${arRz}",\n` +
+      `"arRotateTo": "${arRotateTo}"`;
+
+    document.getElementById('output-box').textContent = out;
+  }
+
+  function copyOutput() {
+    navigator.clipboard.writeText(document.getElementById('output-box').textContent).then(() => {
+      const toast = document.getElementById('copied-toast');
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
     });
+  }
 
-    scene.addEventListener('arError', e => log('arError: ' + JSON.stringify(e.detail)));
-
-    // ── 4. Start button ───────────────────────────
-    document.getElementById('btn-start').addEventListener('click', () => {
-      log('btn-start clicked');
-
-      audioEl.play().then(() => {
-        audioEl.pause();
-        audioEl.currentTime = 0;
-        log('audio context unlocked');
-      }).catch(e => log('audio unlock failed: ' + e));
-
-      const overlay = document.getElementById('overlay');
-      overlay.classList.add('hiding');
-      setTimeout(() => { overlay.style.display = 'none'; }, 500);
-
-      document.getElementById('btn-back').style.display = 'flex';
-
-      const sys = scene.systems && scene.systems['mindar-image-system'];
-      log('system at click time: ' + !!sys);
-
-      if (sys) {
-        log('calling start()');
-        sys.start();
-      } else {
-        log('waiting for loaded event to call start()');
-        scene.addEventListener('loaded', () => {
-          log('loaded fired, calling start()');
-          scene.systems['mindar-image-system'].start();
-        }, { once: true });
-      }
+  // ── Axis buttons ───────────────────────────────
+  function updateAxisBtns() {
+    document.querySelectorAll('.axis-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.axis === rotateAxis);
     });
-
-    // ── 5. Back button ────────────────────────────
-    document.getElementById('btn-back').addEventListener('click', (e) => {
-      e.preventDefault();
-      audioEl.pause();
-      const sys = scene.systems && scene.systems['mindar-image-system'];
-      if (sys) sys.stop();
-      const id = new URLSearchParams(window.location.search).get('id');
-      window.location.href = id ? 'index.html?id=' + id : 'index.html';
+  }
+  document.querySelectorAll('.axis-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      rotateAxis = btn.dataset.axis;
+      updateAxisBtns();
+      applyToScene();
     });
-  </script>
+  });
+
+  // ── Sliders ────────────────────────────────────
+  [
+    ['s-uniform', 's-val',    ''],
+    ['pos-x',     'pos-x-val',''],
+    ['pos-y',     'pos-y-val',''],
+    ['pos-z',     'pos-z-val',''],
+    ['rot-x',     'rot-x-val','°'],
+    ['rot-y',     'rot-y-val','°'],
+    ['rot-z',     'rot-z-val','°'],
+  ].forEach(([id, dispId, suffix]) => {
+    document.getElementById(id).addEventListener('input', function() {
+      document.getElementById(dispId).textContent = this.value + suffix;
+      applyToScene();
+    });
+  });
+
+  // ── Reset ──────────────────────────────────────
+  function resetAll() {
+    setSlider('s-uniform', 's-val',     0.15, '');
+    setSlider('pos-x',     'pos-x-val', 0,    '');
+    setSlider('pos-y',     'pos-y-val', 0,    '');
+    setSlider('pos-z',     'pos-z-val', 0.05, '');
+    setSlider('rot-x',     'rot-x-val', 0,    '°');
+    setSlider('rot-y',     'rot-y-val', 0,    '°');
+    setSlider('rot-z',     'rot-z-val', 0,    '°');
+    rotateAxis = 'y';
+    updateAxisBtns();
+    applyToScene();
+  }
+
+  // ── Init ───────────────────────────────────────
+  if (exhibitsData && exhibitsData.length > 0) {
+    loadExhibit(sel.value || exhibitsData[0].id);
+  }
+</script>
 </body>
 </html>
